@@ -2,7 +2,6 @@
 
 ## Render(renderSettings, scene, camera, imageWriter)
 
-* Generate camera rays
 * Iterate through image dimensions and get rays from camera
 * Cast ray into scene => Color
 * Save color to image
@@ -31,7 +30,6 @@
   - Intersect(ray) *Hit
 * Material
   - Emit(scene, ray, position, normal, UVCoordinate, bouncesLeft) Color
-* Ray
 * Color [3]float64
-* Vector [3]float64
+* Ray [3]float64
 * Matrix [16]float64
