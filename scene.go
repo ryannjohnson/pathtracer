@@ -1,6 +1,6 @@
 package pathtracer
 
-// Scene is a collection of geometry that can be rendered into color.
+// Scene is a collection of geometry.
 type Scene interface {
-	Sample(ray Ray, bouncesLeft int) Color
+	Intersect(ray Ray) *Hit
 }

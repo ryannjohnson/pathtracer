@@ -10,12 +10,10 @@ import (
 	"github.com/ryannjohnson/pathtracer/image"
 )
 
-type dummyScene struct {
-	Color pathtracer.Color
-}
+type dummyScene struct{}
 
-func (s dummyScene) Sample(ray pathtracer.Ray, bouncesLeft int) pathtracer.Color {
-	return s.Color
+func (s dummyScene) Intersect(ray pathtracer.Ray) *pathtracer.Hit {
+	return &pathtracer.Hit{}
 }
 
 func main() {
@@ -27,7 +25,7 @@ func main() {
 	cameraMatrix = cameraMatrix.Translate(pathtracer.NewVector(-5, 5, -5))
 	camera.SetTransformationMatrix(cameraMatrix)
 
-	scene := dummyScene{pathtracer.NewColor(0.5, 0.5, 0.5)}
+	scene := dummyScene{}
 
 	img := image.NewPNG8(64, 64)
 

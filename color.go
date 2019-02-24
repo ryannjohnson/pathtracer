@@ -1,5 +1,7 @@
 package pathtracer
 
+var black = Color{0, 0, 0}
+
 // NewColor takes its RGB values as float64 numbers.
 func NewColor(r, g, b float64) Color {
 	return Color{r, g, b}

@@ -7,5 +7,5 @@ package pathtracer
 //
 // Materials can also be lights, themselves.
 type Material interface {
-	Sample(scene Scene, from Ray, point Vector, normal Ray, uvCoordinate UVCoordinate, bouncesLeft int) Color
+	Sample(from Ray, position Vector, normal Ray, uv UVCoordinate, nextSample func(ray Ray) Color) Color
 }

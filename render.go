@@ -30,12 +30,27 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 			yFloat := float64(y)
 			for i := 0; i < settings.SamplesPerRay; i++ {
 				ray := camera.Cast(xFloat, yFloat)
-				colors[i] = scene.Sample(ray, settings.BounceDepth)
+				colors[i] = sampleScene(scene, ray, settings.BounceDepth)
 			}
 			color := averageColors(colors)
 			image.Set(x, y, color)
 		}
 	}
+}
+
+func sampleScene(scene Scene, ray Ray, bouncesLeft int) Color {
+	if bouncesLeft <= 0 {
+		// TODO: support scene environment color.
+		return black
+	}
+
+	hit := scene.Intersect(ray)
+
+	nextSample := func(nextRay Ray) Color {
+		return sampleScene(scene, nextRay, bouncesLeft-1)
+	}
+
+	return hit.Material.Sample(hit.From, hit.Position, hit.Normal, hit.UV, nextSample)
 }
 
 func averageColors(colors []Color) Color {
