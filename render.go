@@ -15,7 +15,7 @@ type RenderSettings struct {
 type ImageWriter interface {
 	Width() int
 	Height() int
-	WriteColor(x, y int, color Color)
+	Set(x, y int, color Color)
 }
 
 // Render converts a 3D scene into a 2D image.
@@ -33,7 +33,7 @@ func Render(settings *RenderSettings, scene Scene, camera Camera, image ImageWri
 				colors[i] = scene.Sample(ray, settings.bounceDepth)
 			}
 			color := averageColors(colors)
-			image.WriteColor(x, y, color)
+			image.Set(x, y, color)
 		}
 	}
 }
