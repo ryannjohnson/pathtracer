@@ -10,6 +10,11 @@ var (
 	AxisZ = Vector{0, 0, 1}
 )
 
+// NewVector creates a new vector with three dimensions.
+func NewVector(x, y, z float64) Vector {
+	return Vector{x, y, z}
+}
+
 // Vector is a coordinate in 3D space.
 type Vector struct {
 	X, Y, Z float64
@@ -17,7 +22,7 @@ type Vector struct {
 
 // Add results in the combination of two vectors.
 func (v Vector) Add(w Vector) Vector {
-	return Vector{v.X + w.X, v.Y + w.Y, v.Z + w.Z}
+	return NewVector(v.X+w.X, v.Y+w.Y, v.Z+w.Z)
 }
 
 // Length describes the vector's distance from the origin.
@@ -29,20 +34,20 @@ func (v Vector) Length() float64 {
 // [0, 0, 0] to 1.
 func (v Vector) Normalize() Vector {
 	length := v.Length()
-	return Vector{v.X / length, v.Y / length, v.Z / length}
+	return NewVector(v.X/length, v.Y/length, v.Z/length)
 }
 
 // Scale multiplies each dimension of a vector by some value.
 func (v Vector) Scale(multiplier float64) Vector {
-	return Vector{v.X * multiplier, v.Y * multiplier, v.Z * multiplier}
+	return NewVector(v.X*multiplier, v.Y*multiplier, v.Z*multiplier)
 }
 
 // Transform applies a transformation matrix to a vector, resulting in a
 // new vector.
 func (v Vector) Transform(m Matrix) Vector {
-	return Vector{
-		v.X*m.x00 + v.Y*m.x01 + v.Z*m.x02 + m.x03,
-		v.X*m.x10 + v.Y*m.x11 + v.Z*m.x12 + m.x13,
-		v.X*m.x20 + v.Y*m.x21 + v.Z*m.x22 + m.x23,
-	}
+	return NewVector(
+		v.X*m.x00+v.Y*m.x01+v.Z*m.x02+m.x03,
+		v.X*m.x10+v.Y*m.x11+v.Z*m.x12+m.x13,
+		v.X*m.x20+v.Y*m.x21+v.Z*m.x22+m.x23,
+	)
 }

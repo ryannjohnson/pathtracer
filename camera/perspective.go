@@ -6,8 +6,18 @@ import (
 	"github.com/ryannjohnson/pathtracer"
 )
 
+// NewPerspective creates a camera with some defaults attached.
+func NewPerspective() *Perspective {
+	return &Perspective{
+		fieldOfView:          30,
+		transformationMatrix: pathtracer.IdentityMatrix(),
+	}
+}
+
 // Perspective is a camera that simulates how the human eye works,
 // casting rays from a point behind the camera in the world.
+//
+// Its default orientation is facing towards the positive Z axis.
 type Perspective struct {
 	fieldOfView          float64 // Degrees [0, 180)
 	transformationMatrix pathtracer.Matrix
@@ -28,7 +38,7 @@ func (c Perspective) Cast(x, y float64) pathtracer.Ray {
 	radians := c.fieldOfView * math.Pi / 180
 
 	// Find the direction for the x, y coordinate by using FOV as 100%.
-	m := pathtracer.NewMatrix()
+	m := pathtracer.IdentityMatrix()
 	m = m.Rotate(pathtracer.AxisX, y*radians)
 	m = m.Rotate(pathtracer.AxisY, x*radians)
 
@@ -47,4 +57,17 @@ func (c Perspective) Cast(x, y float64) pathtracer.Ray {
 	}
 
 	return ray.Transform(c.transformationMatrix)
+}
+
+// SetFieldOfView expects an angle in degrees.
+//
+// https://en.wikipedia.org/wiki/Field_of_view
+func (c *Perspective) SetFieldOfView(fov float64) {
+	c.fieldOfView = fov
+}
+
+// SetTransformationMatrix sets this camera's transformation matrix,
+// which is applied to every ray cast from the camera.
+func (c *Perspective) SetTransformationMatrix(m pathtracer.Matrix) {
+	c.transformationMatrix = m
 }

@@ -3,8 +3,8 @@ package pathtracer
 // RenderSettings describes options related to the performance and
 // output of the Render function.
 type RenderSettings struct {
-	bounceDepth   int
-	samplesPerRay int
+	BounceDepth   int
+	SamplesPerRay int
 }
 
 // ImageWriter represents a 2D canvas that receives colors for each of
@@ -19,18 +19,18 @@ type ImageWriter interface {
 }
 
 // Render converts a 3D scene into a 2D image.
-func Render(settings *RenderSettings, scene Scene, camera Camera, image ImageWriter) {
+func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSettings) {
 	width := image.Width()
 	height := image.Height()
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
-			colors := make([]Color, settings.samplesPerRay)
+			colors := make([]Color, settings.SamplesPerRay)
 			xFloat := float64(x)
 			yFloat := float64(y)
-			for i := 0; i < settings.samplesPerRay; i++ {
+			for i := 0; i < settings.SamplesPerRay; i++ {
 				ray := camera.Cast(xFloat, yFloat)
-				colors[i] = scene.Sample(ray, settings.bounceDepth)
+				colors[i] = scene.Sample(ray, settings.BounceDepth)
 			}
 			color := averageColors(colors)
 			image.Set(x, y, color)

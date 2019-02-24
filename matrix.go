@@ -2,9 +2,9 @@ package pathtracer
 
 import "math"
 
-// NewMatrix creates a new identity matrix, which would not produce any
+// IdentityMatrix represents a transformation matrix that makes no
 // changes when applied to a vector.
-func NewMatrix() Matrix {
+func IdentityMatrix() Matrix {
 	return Matrix{
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -66,4 +66,24 @@ func (m Matrix) Rotate(v Vector, radians float64) Matrix {
 		t*v.Z*v.X + v.Y*s, t*v.Y*v.Z - v.X*s, t*v.Z*v.Z + c, 0,
 		0, 0, 0, 1}
 	return m.Multiply(r)
+}
+
+// Scale uniformly changes the size of a transformation matrix.
+func (m Matrix) Scale(s float64) Matrix {
+	return Matrix{
+		m.x00 * s, m.x01, m.x02, m.x03,
+		m.x10, m.x11 * s, m.x12, m.x13,
+		m.x20, m.x21, m.x22 * s, m.x23,
+		m.x30, m.x31, m.x32, m.x33,
+	}
+}
+
+// Translate adds a vector to a transformation matrix.
+func (m Matrix) Translate(v Vector) Matrix {
+	return Matrix{
+		m.x00, m.x01, m.x02, m.x03 + v.X,
+		m.x10, m.x11, m.x12, m.x13 + v.Y,
+		m.x20, m.x21, m.x22, m.x23 + v.Z,
+		m.x30, m.x31, m.x32, m.x33,
+	}
 }
