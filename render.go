@@ -23,24 +23,36 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 	width := image.Width()
 	height := image.Height()
 
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
+	aspectRatio := float64(width) / float64(height)
+
+	var xRatio float64 = 1
+	var yRatio float64 = 1
+	if aspectRatio < 1 {
+		xRatio = aspectRatio
+	} else {
+		yRatio = 1 / aspectRatio
+	}
+
+	for yPixel := 0; yPixel < height; yPixel++ {
+		for xPixel := 0; xPixel < width; xPixel++ {
+			x := xRatio * (float64(xPixel)/float64(width-1) - 0.5)       // Positive is right
+			y := yRatio * (float64(yPixel)/float64(height-1) - 0.5) * -1 // Positive is up
+
+			// TODO: Implement interchangable samplers via RenderSettings.
 			colors := make([]Color, settings.SamplesPerRay)
-			xFloat := float64(x)
-			yFloat := float64(y)
 			for i := 0; i < settings.SamplesPerRay; i++ {
-				ray := camera.Cast(xFloat, yFloat)
+				ray := camera.Cast(x, y)
 				colors[i] = sampleScene(scene, ray, settings.BounceDepth)
 			}
 			color := averageColors(colors)
-			image.Set(x, y, color)
+
+			image.Set(xPixel, yPixel, color)
 		}
 	}
 }
 
 func sampleScene(scene Scene, ray Ray, bouncesLeft int) Color {
 	if bouncesLeft <= 0 {
-		// TODO: support scene environment color.
 		return black
 	}
 
