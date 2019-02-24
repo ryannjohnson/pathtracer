@@ -29,7 +29,8 @@ func Render(settings *RenderSettings, scene Scene, camera Camera, image ImageWri
 			xFloat := float64(x)
 			yFloat := float64(y)
 			for i := 0; i < settings.samplesPerRay; i++ {
-				colors[i] = camera.Expose(scene, xFloat, yFloat, settings.bounceDepth)
+				ray := camera.Cast(xFloat, yFloat)
+				colors[i] = scene.Sample(ray, settings.bounceDepth)
 			}
 			color := averageColors(colors)
 			image.WriteColor(x, y, color)
