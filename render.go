@@ -56,13 +56,16 @@ func sampleScene(scene Scene, ray Ray, bouncesLeft int) Color {
 		return black
 	}
 
-	hit := scene.Intersect(ray)
+	hit, material, ok := scene.Intersect(ray)
+	if !ok {
+		return black
+	}
 
 	nextSample := func(nextRay Ray) Color {
 		return sampleScene(scene, nextRay, bouncesLeft-1)
 	}
 
-	return hit.Material.Sample(hit.From, hit.Position, hit.Normal, hit.UV, nextSample)
+	return material.Sample(hit, nextSample)
 }
 
 func averageColors(colors []Color) Color {

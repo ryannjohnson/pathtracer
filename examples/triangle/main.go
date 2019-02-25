@@ -23,7 +23,7 @@ type dummyMaterial struct {
 	Color pathtracer.Color
 }
 
-func (m dummyMaterial) Sample(from pathtracer.Ray, position pathtracer.Vector, normal pathtracer.Ray, uv pathtracer.UVCoordinate, nextSample pathtracer.Sampler) pathtracer.Color {
+func (m dummyMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
 	return m.Color
 }
 
@@ -31,8 +31,8 @@ type dummyScene struct {
 	Color pathtracer.Color
 }
 
-func (s dummyScene) Intersect(ray pathtracer.Ray) *pathtracer.Hit {
-	return &pathtracer.Hit{Material: dummyMaterial{Color: s.Color}}
+func (s dummyScene) Intersect(ray pathtracer.Ray) (pathtracer.Hit, pathtracer.Material, bool) {
+	return pathtracer.Hit{}, dummyMaterial{Color: s.Color}, true
 }
 
 func main() {

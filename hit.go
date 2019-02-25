@@ -14,5 +14,4 @@ type Hit struct {
 	Position Vector
 	Normal   Ray
 	UV       UVCoordinate
-	Material Material
 }

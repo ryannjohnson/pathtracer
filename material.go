@@ -13,5 +13,5 @@ type Sampler func(Ray) Color
 //
 // Materials can also be lights, themselves.
 type Material interface {
-	Sample(from Ray, position Vector, normal Ray, uv UVCoordinate, nextSample Sampler) Color
+	Sample(hit Hit, nextSample Sampler) Color
 }
