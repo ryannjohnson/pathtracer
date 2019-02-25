@@ -23,5 +23,5 @@ func to8Bit(c float64) uint8 {
 	if c >= 1 {
 		return 255
 	}
-	return uint8(math.Floor(c * 256))
+	return uint8(math.Floor(c * 255))
 }
