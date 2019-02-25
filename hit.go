@@ -12,6 +12,6 @@ type UVCoordinate interface {
 type Hit struct {
 	From     Ray
 	Position Vector
-	Normal   Ray
+	Normal   Vector
 	UV       UVCoordinate
 }

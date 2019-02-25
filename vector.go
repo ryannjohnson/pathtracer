@@ -25,6 +25,39 @@ func (v Vector) Add(w Vector) Vector {
 	return NewVector(v.X+w.X, v.Y+w.Y, v.Z+w.Z)
 }
 
+// DotProduct measures the magnitude of similarity between two vectors.
+//
+// If they're parallel, then a vector representing the product of their
+// lengths is returned.
+//
+// If they're perpendicular, then zero is returned.
+//
+// https://en.wikipedia.org/wiki/Dot_product
+func (v Vector) DotProduct(w Vector) float64 {
+	return v.X*w.X + v.Y*w.Y + v.Z*w.Z
+}
+
+// CrossProduct measures the similarity between two vectors.
+//
+// If they are parallel, the cross product is zero because there is no
+// difference between them.
+//
+// If they are perpendicular, the cross product will equal a vector with
+// a length equal to the area of the triangle created by the two
+// vectors.
+//
+// Eg, if v1 = (1, 0, 0) and v2 = (0, 1, 0), then the cross product will
+// be (0, 0, 1).
+//
+// https://en.wikipedia.org/wiki/Cross_product
+func (v Vector) CrossProduct(w Vector) Vector {
+	return NewVector(
+		v.Y*w.Z-v.Z*w.Y,
+		v.Z*w.X-v.X*w.Z,
+		v.X*w.Y-v.Y*w.X,
+	)
+}
+
 // Length describes the vector's distance from the origin.
 func (v Vector) Length() float64 {
 	return math.Sqrt(math.Pow(v.X, 2) + math.Pow(v.Y, 2) + math.Pow(v.Z, 2))
@@ -40,6 +73,11 @@ func (v Vector) Normalize() Vector {
 // Scale multiplies each dimension of a vector by some value.
 func (v Vector) Scale(multiplier float64) Vector {
 	return NewVector(v.X*multiplier, v.Y*multiplier, v.Z*multiplier)
+}
+
+// Sub results in the difference of two vectors.
+func (v Vector) Sub(w Vector) Vector {
+	return NewVector(v.X-w.X, v.Y-w.Y, v.Z-w.Z)
 }
 
 // Transform applies a transformation matrix to a vector, resulting in a
