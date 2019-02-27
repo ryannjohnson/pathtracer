@@ -78,6 +78,15 @@ func (m Matrix) Scale(s float64) Matrix {
 	}
 }
 
+// ResetTranslation removes any position manipulation in the matrix.
+func (m Matrix) ResetTranslation() Matrix {
+	mStripped := m
+	mStripped.x03 = 0
+	mStripped.x13 = 0
+	mStripped.x23 = 0
+	return mStripped
+}
+
 // Translate adds a vector to a transformation matrix.
 func (m Matrix) Translate(v Vector) Matrix {
 	return Matrix{
