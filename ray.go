@@ -11,7 +11,7 @@ type Ray struct {
 func (r Ray) Transform(m Matrix) Ray {
 	// Transforming the direction vector essentially rotates it when
 	// it's being used as a unit vector.
-	mDirection := m.ResetTranslation()
+	mDirection := m.SetTranslation(NewVector(0, 0, 0))
 
 	return Ray{
 		r.Origin.Transform(m),

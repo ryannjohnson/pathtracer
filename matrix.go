@@ -78,12 +78,12 @@ func (m Matrix) Scale(s float64) Matrix {
 	}
 }
 
-// ResetTranslation removes any position manipulation in the matrix.
-func (m Matrix) ResetTranslation() Matrix {
+// SetTranslation overrides the current translation of the matrix.
+func (m Matrix) SetTranslation(v Vector) Matrix {
 	mStripped := m
-	mStripped.x03 = 0
-	mStripped.x13 = 0
-	mStripped.x23 = 0
+	mStripped.x03 = v.X
+	mStripped.x13 = v.Y
+	mStripped.x23 = v.Z
 	return mStripped
 }
 
