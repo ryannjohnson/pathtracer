@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 
 	"github.com/ryannjohnson/pathtracer"
@@ -13,9 +14,10 @@ import (
 func main() {
 	camera := camera.NewPerspective()
 	cameraMatrix := pathtracer.IdentityMatrix()
-	cameraMatrix = cameraMatrix.Translate(pathtracer.NewVector(0, 0, 50))
+	cameraMatrix = cameraMatrix.Translate(pathtracer.NewVector(-5, 0, 5))
+	cameraMatrix = cameraMatrix.Rotate(pathtracer.AxisY, math.Pi/-4)
 	camera.SetTransformationMatrix(cameraMatrix)
-	camera.SetFieldOfView(60)
+	camera.SetFieldOfView(45)
 
 	objFile, err := os.Open("./examples/triangle/scene.obj")
 	if err != nil {
@@ -35,7 +37,7 @@ func main() {
 		return
 	}
 
-	img := image.NewPNG8(64, 64)
+	img := image.NewPNG8(200, 200)
 
 	pathtracer.Render(scene, camera, img, &pathtracer.RenderSettings{
 		BounceDepth:   5,
