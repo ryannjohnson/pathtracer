@@ -23,7 +23,9 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (planeDistanceFrom
 	v0v2 := triangle.Vertex0().Sub(triangle.Vertex2())
 	normal := v0v1.CrossProduct(v0v2)
 
-	// Perpendicular triangles and rays do not intersect.
+	// Parallel triangles and rays do not intersect. We measure this by
+	// seeing if the triangle's normal is perpendicular to the ray's
+	// direction.
 	rayDirectionDotNormal := ray.Direction.DotProduct(normal)
 	if math.Abs(rayDirectionDotNormal) < math.SmallestNonzeroFloat64 {
 		return
@@ -40,8 +42,12 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (planeDistanceFrom
 	d := triangle.Vertex0().DotProduct(normal)
 
 	planeDistanceFromRayOrigin = (ray.Origin.DotProduct(normal) + d) / rayDirectionDotNormal
+	if planeDistanceFromRayOrigin <= 0 {
+		return
+	}
 
 	intersectionPoint = ray.Origin.Add(ray.Direction.Scale(planeDistanceFromRayOrigin))
+	intersectionNormal = normal.Normalize()
 
 	var triangleEdge pathtracer.Vector
 	var pointEdge pathtracer.Vector
@@ -72,6 +78,5 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (planeDistanceFrom
 	}
 
 	ok = true
-	intersectionNormal = normal.Normalize()
 	return
 }
