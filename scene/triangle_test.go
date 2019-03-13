@@ -41,6 +41,22 @@ func TestIntersectTriangle(t *testing.T) {
 			planeDistanceFromRayOrigin: 1,
 		},
 		{
+			name: "should pass if the ray passes through the middle of the triangle if the verticies are counter-clockwise",
+			ray: pathtracer.Ray{
+				Origin:    pathtracer.NewVector(0, 0, 0),
+				Direction: pathtracer.NewVector(1, 0, 0),
+			},
+			triangle: testTriangle{
+				pathtracer.NewVector(1, -1, 0),
+				pathtracer.NewVector(1, 1, -1),
+				pathtracer.NewVector(1, 1, 1),
+			},
+			ok:                         true,
+			intersectionPoint:          pathtracer.NewVector(1, 0, 0),
+			intersectionNormal:         pathtracer.NewVector(1, 0, 0),
+			planeDistanceFromRayOrigin: 1,
+		},
+		{
 			name: "should pass if the ray passes through an edge of the triangle",
 			ray: pathtracer.Ray{
 				Origin:    pathtracer.NewVector(0, 0, 0),

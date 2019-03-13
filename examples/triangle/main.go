@@ -14,8 +14,8 @@ import (
 func main() {
 	camera := camera.NewPerspective()
 	cameraMatrix := pathtracer.IdentityMatrix()
-	cameraMatrix = cameraMatrix.Translate(pathtracer.NewVector(-5, 0, 5))
-	cameraMatrix = cameraMatrix.Rotate(pathtracer.AxisY, math.Pi/-4)
+	cameraMatrix = cameraMatrix.Translate(pathtracer.NewVector(-5, 0, -5))
+	cameraMatrix = cameraMatrix.Rotate(pathtracer.AxisY, math.Pi/4)
 	camera.SetTransformationMatrix(cameraMatrix)
 	camera.SetFieldOfView(45)
 
@@ -40,8 +40,8 @@ func main() {
 	img := image.NewPNG8(200, 200)
 
 	pathtracer.Render(scene, camera, img, &pathtracer.RenderSettings{
-		BounceDepth:   5,
-		SamplesPerRay: 5,
+		BounceDepth:   1,
+		SamplesPerRay: 1,
 	})
 
 	if err := img.Write(os.Stdout); err != nil {

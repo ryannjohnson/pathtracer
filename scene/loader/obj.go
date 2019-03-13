@@ -46,22 +46,14 @@ type OBJScene struct {
 
 type objTriangle [3]pathtracer.Vector
 
-func (t objTriangle) Vertex0() pathtracer.Vector {
-	return t[0]
-}
-
-func (t objTriangle) Vertex1() pathtracer.Vector {
-	return t[1]
-}
-
-func (t objTriangle) Vertex2() pathtracer.Vector {
-	return t[2]
-}
+func (t objTriangle) Vertex0() pathtracer.Vector { return t[0] }
+func (t objTriangle) Vertex1() pathtracer.Vector { return t[1] }
+func (t objTriangle) Vertex2() pathtracer.Vector { return t[2] }
 
 type dummyMaterial struct{}
 
 func (m dummyMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
-	return pathtracer.NewColor(1, 1, 1)
+	return pathtracer.NewColor(hit.Position.X, hit.Position.Y, 1)
 }
 
 // Intersect finds the first geometry a ray passes through in the scene
