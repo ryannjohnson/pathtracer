@@ -57,6 +57,54 @@ func TestIntersectTriangle(t *testing.T) {
 			planeDistanceFromRayOrigin: 1,
 		},
 		{
+			name: "should pass if a diagonal ray passes through the corner of the triangle",
+			ray: pathtracer.Ray{
+				Origin:    pathtracer.NewVector(0, 0, 0),
+				Direction: pathtracer.NewVector(1, 1, 1).Normalize(),
+			},
+			triangle: testTriangle{
+				pathtracer.NewVector(1, -1, 0),
+				pathtracer.NewVector(1, 1, 1),
+				pathtracer.NewVector(1, 1, -1),
+			},
+			ok:                         true,
+			intersectionPoint:          pathtracer.NewVector(1, 1, 1),
+			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
+			planeDistanceFromRayOrigin: 1.732050807568877,
+		},
+		{
+			name: "should pass if a diagonal ray passes through the corner of the triangle in the negative direction",
+			ray: pathtracer.Ray{
+				Origin:    pathtracer.NewVector(0, 0, 0),
+				Direction: pathtracer.NewVector(-1, -1, -1).Normalize(),
+			},
+			triangle: testTriangle{
+				pathtracer.NewVector(-1, 1, 0),
+				pathtracer.NewVector(-1, -1, -1),
+				pathtracer.NewVector(-1, -1, 1),
+			},
+			ok:                         true,
+			intersectionPoint:          pathtracer.NewVector(-1, -1, -1),
+			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
+			planeDistanceFromRayOrigin: 1.732050807568877,
+		},
+		{
+			name: "should pass if the ray passes through the middle of the triangle at an extreme angle",
+			ray: pathtracer.Ray{
+				Origin:    pathtracer.NewVector(0, 0, 0),
+				Direction: pathtracer.NewVector(1, 0, 0),
+			},
+			triangle: testTriangle{
+				pathtracer.NewVector(1, -1, 0),
+				pathtracer.NewVector(1000000, 1, 1),
+				pathtracer.NewVector(1000000, 1, -1),
+			},
+			ok:                         true,
+			intersectionPoint:          pathtracer.NewVector(500000.5, 0, 0),
+			intersectionNormal:         pathtracer.NewVector(-2.000001999998e-06, 0.9999999999979999, 0),
+			planeDistanceFromRayOrigin: 500000.5,
+		},
+		{
 			name: "should pass if the ray passes through an edge of the triangle",
 			ray: pathtracer.Ray{
 				Origin:    pathtracer.NewVector(0, 0, 0),
