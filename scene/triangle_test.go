@@ -22,7 +22,7 @@ func TestIntersectTriangle(t *testing.T) {
 		ok                         bool
 		intersectionPoint          pathtracer.Vector
 		intersectionNormal         pathtracer.Vector
-		planeDistanceFromRayOrigin float64
+		distanceAlongRayFromOrigin float64
 	}{
 		{
 			name: "should pass if the ray passes through the middle of the triangle",
@@ -38,7 +38,7 @@ func TestIntersectTriangle(t *testing.T) {
 			ok:                         true,
 			intersectionPoint:          pathtracer.NewVector(1, 0, 0),
 			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
-			planeDistanceFromRayOrigin: 1,
+			distanceAlongRayFromOrigin: 1,
 		},
 		{
 			name: "should pass if the ray passes through the middle of the triangle if the verticies are counter-clockwise",
@@ -54,7 +54,7 @@ func TestIntersectTriangle(t *testing.T) {
 			ok:                         true,
 			intersectionPoint:          pathtracer.NewVector(1, 0, 0),
 			intersectionNormal:         pathtracer.NewVector(1, 0, 0),
-			planeDistanceFromRayOrigin: 1,
+			distanceAlongRayFromOrigin: 1,
 		},
 		{
 			name: "should pass if a diagonal ray passes through the corner of the triangle",
@@ -70,7 +70,7 @@ func TestIntersectTriangle(t *testing.T) {
 			ok:                         true,
 			intersectionPoint:          pathtracer.NewVector(1, 1, 1),
 			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
-			planeDistanceFromRayOrigin: 1.732050807568877,
+			distanceAlongRayFromOrigin: 1.732050807568877,
 		},
 		{
 			name: "should pass if a diagonal ray passes through the corner of the triangle in the negative direction",
@@ -86,7 +86,7 @@ func TestIntersectTriangle(t *testing.T) {
 			ok:                         true,
 			intersectionPoint:          pathtracer.NewVector(-1, -1, -1),
 			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
-			planeDistanceFromRayOrigin: 1.732050807568877,
+			distanceAlongRayFromOrigin: 1.732050807568877,
 		},
 		{
 			name: "should pass if the ray passes through the middle of the triangle at an extreme angle",
@@ -100,9 +100,9 @@ func TestIntersectTriangle(t *testing.T) {
 				pathtracer.NewVector(1000000, 1, -1),
 			},
 			ok:                         true,
-			intersectionPoint:          pathtracer.NewVector(500000.5, 0, 0),
+			intersectionPoint:          pathtracer.NewVector(500000.4999999999, 0, 0),
 			intersectionNormal:         pathtracer.NewVector(-2.000001999998e-06, 0.9999999999979999, 0),
-			planeDistanceFromRayOrigin: 500000.5,
+			distanceAlongRayFromOrigin: 500000.4999999999,
 		},
 		{
 			name: "should pass if the ray passes through an edge of the triangle",
@@ -118,7 +118,7 @@ func TestIntersectTriangle(t *testing.T) {
 			ok:                         true,
 			intersectionPoint:          pathtracer.NewVector(1, 0, 0),
 			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
-			planeDistanceFromRayOrigin: 1,
+			distanceAlongRayFromOrigin: 1,
 		},
 		{
 			name: "should fail if the ray misses the triangle",
@@ -134,7 +134,7 @@ func TestIntersectTriangle(t *testing.T) {
 			ok:                         false,
 			intersectionPoint:          pathtracer.NewVector(1, 0, 0),
 			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
-			planeDistanceFromRayOrigin: 1,
+			distanceAlongRayFromOrigin: 1,
 		},
 		{
 			name: "should fail if the triangle is behind the ray's origin",
@@ -148,7 +148,8 @@ func TestIntersectTriangle(t *testing.T) {
 				pathtracer.NewVector(-1, 1, -1),
 			},
 			ok:                         false,
-			planeDistanceFromRayOrigin: -1,
+			intersectionNormal:         pathtracer.NewVector(-1, 0, 0),
+			distanceAlongRayFromOrigin: -1,
 		},
 		{
 			name: "should fail if the triangle and ray are parallel",
@@ -161,7 +162,8 @@ func TestIntersectTriangle(t *testing.T) {
 				pathtracer.NewVector(2, 1, 0),
 				pathtracer.NewVector(1, 1, 0),
 			},
-			ok: false,
+			ok:                 false,
+			intersectionNormal: pathtracer.NewVector(0, 0, 1),
 		},
 	}
 
@@ -178,8 +180,8 @@ func TestIntersectTriangle(t *testing.T) {
 			if normal != testCase.intersectionNormal {
 				t.Error("intersectionNormal", normal, "doesn't match expected", testCase.intersectionNormal)
 			}
-			if distance != testCase.planeDistanceFromRayOrigin {
-				t.Error("planeDistanceFromRayOrigin", distance, "doesn't match expected", testCase.planeDistanceFromRayOrigin)
+			if distance != testCase.distanceAlongRayFromOrigin {
+				t.Error("distanceAlongRayFromOrigin", distance, "doesn't match expected", testCase.distanceAlongRayFromOrigin)
 			}
 		})
 	}
