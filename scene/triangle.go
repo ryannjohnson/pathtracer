@@ -17,25 +17,55 @@ type Triangle interface {
 // what distance from the origin if so.
 //
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/ray-triangle-intersection-geometric-solution
-func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayFromOrigin float64, intersectionPoint, intersectionNormal pathtracer.Vector, ok bool) {
+// http://geomalgorithms.com/a06-_intersect-2.html
+func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayFromOrigin float64, intersectionPoint, triangleNormal pathtracer.Vector, ok bool) {
 	// Edges can be represented by vectors.
 	v0v1 := triangle.Vertex0().Sub(triangle.Vertex1())
 	v0v2 := triangle.Vertex0().Sub(triangle.Vertex2())
 
-	// Normal of the triangle.
-	intersectionNormal = v0v1.CrossProduct(v0v2).Normalize()
+	// Unit vector representing the normal of the triangle.
+	triangleNormal = v0v1.CrossProduct(v0v2).Normalize()
 
-	// Parallel triangles and rays do not intersect. We measure this by
-	// seeing if the triangle's normal is perpendicular to the ray's
-	// direction.
-	rayDirectionDotNormal := ray.Direction.DotProduct(intersectionNormal)
-	if math.Abs(rayDirectionDotNormal) < math.SmallestNonzeroFloat64 {
+	// The ray direction and triangle normal are both unit vectors.
+	//
+	// If both vectors are parallel, then their dot product will equal
+	// 1. If they are perpendicular, their dot product will equal 0. The
+	// values in between are essentially the raw cosine of the angle
+	// between the two vectors.
+	cosineOfRayAndNormal := ray.Direction.DotProduct(triangleNormal)
+
+	// If they're perpendicular and equal zero, then the ray will never
+	// intersect the triangle's plane.
+	if math.Abs(cosineOfRayAndNormal) < math.SmallestNonzeroFloat64 {
 		return
 	}
 
-	// http://geomalgorithms.com/a06-_intersect-2.html
+	// To determine how far the ray origin is from the closest point on
+	// the triangle's plane, we'll use a known length: the distance from
+	// the ray origin to any vertex on the triangle.
+	//
+	// Since the triangleNormal is a unit vector, its only effect will
+	// be scaling the magnitude of the ray origin/triangle vertex line
+	// depending on how different their angles are.
+	//
+	// If they're parallel, this line represents the full distance. If
+	// they're at a 60 degree angle away from each other, then the
+	// distance will be half of the line's length (cosine of 30
+	// degrees).
 	v0r0 := triangle.Vertex0().Sub(ray.Origin)
-	distanceAlongRayFromOrigin = intersectionNormal.DotProduct(v0r0) / rayDirectionDotNormal
+	closestDistanceFromRayOriginToPlane := triangleNormal.DotProduct(v0r0)
+
+	// The closest distance from the ray origin to the triangle plane is
+	// the adjacent side of the triangle. To get the hypotenuse, we just
+	// divide it by the cosine of the angle.
+	//
+	// The wider the angle, the longer the hypotenuse is. If the angle
+	// is tiny or nonexistant, then our adjacent side is already the
+	// hypotenuse, as well.
+	distanceAlongRayFromOrigin = closestDistanceFromRayOriginToPlane / cosineOfRayAndNormal
+
+	// We don't want to intersect triangles that are at or behind the
+	// ray that's looking for them.
 	if distanceAlongRayFromOrigin <= 0 {
 		return
 	}
@@ -52,7 +82,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 	triangleEdge = triangle.Vertex1().Sub(triangle.Vertex0())
 	pointEdge = intersectionPoint.Sub(triangle.Vertex0())
 	edgesCrossProduct = triangleEdge.CrossProduct(pointEdge)
-	if intersectionNormal.DotProduct(edgesCrossProduct) < 0 {
+	if triangleNormal.DotProduct(edgesCrossProduct) < 0 {
 		return
 	}
 
@@ -60,7 +90,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 	triangleEdge = triangle.Vertex2().Sub(triangle.Vertex1())
 	pointEdge = intersectionPoint.Sub(triangle.Vertex1())
 	edgesCrossProduct = triangleEdge.CrossProduct(pointEdge)
-	if intersectionNormal.DotProduct(edgesCrossProduct) < 0 {
+	if triangleNormal.DotProduct(edgesCrossProduct) < 0 {
 		return
 	}
 
@@ -68,7 +98,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 	triangleEdge = triangle.Vertex0().Sub(triangle.Vertex2())
 	pointEdge = intersectionPoint.Sub(triangle.Vertex2())
 	edgesCrossProduct = triangleEdge.CrossProduct(pointEdge)
-	if intersectionNormal.DotProduct(edgesCrossProduct) < 0 {
+	if triangleNormal.DotProduct(edgesCrossProduct) < 0 {
 		return
 	}
 
