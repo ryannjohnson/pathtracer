@@ -53,7 +53,7 @@ func (t objTriangle) Vertex2() pathtracer.Vector { return t[2] }
 type dummyMaterial struct{}
 
 func (m dummyMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
-	return pathtracer.NewColor(hit.Position.X, hit.Position.Y, 1)
+	return pathtracer.NewColor(hit.Position.X, hit.Position.Y, hit.Position.Z)
 }
 
 // Intersect finds the first geometry a ray passes through in the scene

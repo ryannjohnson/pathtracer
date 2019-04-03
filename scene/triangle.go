@@ -21,7 +21,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (planeDistanceFrom
 	// Edges can be represented by vectors.
 	v0v1 := triangle.Vertex0().Sub(triangle.Vertex1())
 	v0v2 := triangle.Vertex0().Sub(triangle.Vertex2())
-	normal := v0v1.CrossProduct(v0v2)
+	normal := v0v1.CrossProduct(v0v2).Normalize()
 
 	// Parallel triangles and rays do not intersect. We measure this by
 	// seeing if the triangle's normal is perpendicular to the ray's
@@ -31,17 +31,12 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (planeDistanceFrom
 		return
 	}
 
-	// TODO: Figure out what this variable actually means.
+	// http://geomalgorithms.com/a06-_intersect-2.html
 	//
-	// I don't understand why this works when the normal isn't
-	// normalized. Otherwise I'd label this as the distance of the plane
-	// from the origin (0, 0, 0).
-	//
-	// My hunch is that the length of the normal gets canceled out when
-	// planeDistanceFromRayOrigin gets computed.
-	d := triangle.Vertex0().DotProduct(normal)
-
-	planeDistanceFromRayOrigin = (ray.Origin.DotProduct(normal) + d) / rayDirectionDotNormal
+	// TODO: Rename the planeDistanceFromRayOrigin and try to collapse
+	// these calculations into a simpler form.
+	v0p0 := triangle.Vertex0().Sub(ray.Origin)
+	planeDistanceFromRayOrigin = normal.DotProduct(v0p0) / normal.DotProduct(ray.Direction)
 	if planeDistanceFromRayOrigin <= 0 {
 		return
 	}

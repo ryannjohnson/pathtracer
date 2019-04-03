@@ -15,7 +15,7 @@ func main() {
 	camera := camera.NewPerspective()
 	cameraMatrix := pathtracer.IdentityMatrix()
 	cameraMatrix = cameraMatrix.Translate(pathtracer.NewVector(-5, 0, -5))
-	cameraMatrix = cameraMatrix.Rotate(pathtracer.AxisY, math.Pi/4)
+	cameraMatrix = cameraMatrix.Rotate(pathtracer.AxisY, math.Pi/-4)
 	camera.SetTransformationMatrix(cameraMatrix)
 	camera.SetFieldOfView(45)
 
