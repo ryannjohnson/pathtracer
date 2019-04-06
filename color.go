@@ -13,3 +13,13 @@ func NewColor(r, g, b float64) Color {
 type Color struct {
 	R, G, B float64
 }
+
+// Add sums each channel of the two colors.
+func (c Color) Add(d Color) Color {
+	return NewColor(c.R+d.R, c.G+d.G, c.B+d.B)
+}
+
+// Multiply gets the product for each channel of the two colors.
+func (c Color) Multiply(d Color) Color {
+	return NewColor(c.R*d.R, c.G*d.G, c.B*d.B)
+}

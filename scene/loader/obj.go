@@ -5,7 +5,9 @@ import (
 	"math"
 
 	"github.com/g3n/engine/loader/obj"
+	"github.com/g3n/engine/math32"
 	"github.com/ryannjohnson/pathtracer"
+	"github.com/ryannjohnson/pathtracer/material"
 	"github.com/ryannjohnson/pathtracer/scene"
 )
 
@@ -69,7 +71,7 @@ func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(objTriangl
 		}
 
 		uvs := [3]objUVCoordinate{}
-		if len(decoder.Uvs) != 0 {
+		if len(decoder.Uvs) != 0 && face.Uvs[0] < len(decoder.Uvs) {
 			uvs[0] = objUVCoordinate{
 				float64(decoder.Uvs[face.Uvs[0]*2]),
 				float64(decoder.Uvs[face.Uvs[0]*2+1]),
@@ -165,5 +167,30 @@ type objMaterial struct {
 }
 
 func (m objMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
-	return pathtracer.NewColor(hit.Position.X, hit.Position.Y, hit.Position.Z)
+	color := pathtracer.NewColor(0, 0, 0)
+
+	if m.source.Diffuse.R > 0 || m.source.Diffuse.G > 0 || m.source.Diffuse.B > 0 {
+		ray := pathtracer.Ray{
+			Origin:    hit.Position,
+			Direction: material.DiffuseBounce(hit.Normal),
+		}
+
+		colorFromScene := nextSample(ray)
+
+		colorToCamera := colorFromScene.Multiply(math32ToColor(m.source.Diffuse))
+
+		color = color.Add(colorToCamera)
+	}
+
+	color = color.Add(math32ToColor(m.source.Emissive))
+
+	return color
+}
+
+func math32ToColor(m32 math32.Color) pathtracer.Color {
+	return pathtracer.NewColor(
+		float64(m32.R),
+		float64(m32.G),
+		float64(m32.B),
+	)
 }
