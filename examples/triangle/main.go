@@ -37,11 +37,11 @@ func main() {
 		return
 	}
 
-	img := image.NewPNG8(100, 100)
+	img := image.NewPNG8(200, 200)
 
 	pathtracer.Render(scene, camera, img, &pathtracer.RenderSettings{
 		BounceDepth:   5,
-		SamplesPerRay: 100,
+		SamplesPerRay: 10,
 	})
 
 	if err := img.Write(os.Stdout); err != nil {

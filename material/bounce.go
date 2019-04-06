@@ -10,11 +10,10 @@ import (
 // DiffuseBounce returns a unit vector in the hemisphere of the supplied
 // normal.
 func DiffuseBounce(normal pathtracer.Vector) pathtracer.Vector {
-	r := rand.New(rand.NewSource(rand.Int63()))
-	return randomDirectionWithinHemisphere(r, normal)
+	return randomDirectionWithinHemisphere(normal)
 }
 
-func randomDirectionWithinHemisphere(r *rand.Rand, normal pathtracer.Vector) pathtracer.Vector {
+func randomDirectionWithinHemisphere(normal pathtracer.Vector) pathtracer.Vector {
 	for {
 		vector := pathtracer.NewVector(
 			rand.Float64()*2-1,
