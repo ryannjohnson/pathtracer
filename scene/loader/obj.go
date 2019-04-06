@@ -4,15 +4,14 @@ import (
 	"io"
 	"math"
 
-	objLoader "github.com/g3n/engine/loader/obj"
-	"github.com/g3n/engine/math32"
+	"github.com/g3n/engine/loader/obj"
 	"github.com/ryannjohnson/pathtracer"
 	"github.com/ryannjohnson/pathtracer/scene"
 )
 
 // NewOBJScene loads from .obj and .mtl files to produce a scene.
 func NewOBJScene(objReader, mtlReader io.Reader) (*OBJScene, error) {
-	decoder, err := objLoader.DecodeReader(objReader, mtlReader)
+	decoder, err := obj.DecodeReader(objReader, mtlReader)
 	if err != nil {
 		return nil, err
 	}
@@ -20,51 +19,99 @@ func NewOBJScene(objReader, mtlReader io.Reader) (*OBJScene, error) {
 	triangles := make([]objTriangle, 0)
 
 	for _, object := range decoder.Objects {
-		geom, err := decoder.NewGeometry(&object)
-		if err != nil {
-			return nil, err
+		for _, face := range object.Faces {
+			readTriangles(decoder, face, func(faceTriangle objTriangle) {
+				triangles = append(triangles, faceTriangle)
+			})
 		}
-
-		geom.ReadFaces(func(vA, vB, vC math32.Vector3) bool {
-			v0 := pathtracer.NewVector(float64(vA.X), float64(vA.Y), float64(vA.Z))
-			v1 := pathtracer.NewVector(float64(vB.X), float64(vB.Y), float64(vB.Z))
-			v2 := pathtracer.NewVector(float64(vC.X), float64(vC.Y), float64(vC.Z))
-			triangles = append(triangles, objTriangle{v0, v1, v2})
-			return false
-		})
 	}
 
 	return &OBJScene{decoder, triangles}, nil
 }
 
+func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(objTriangle)) {
+	numTriangles := len(face.Vertices) - 2
+	for i := 0; i < numTriangles; i++ {
+		vertexes := [3]pathtracer.Vector{
+			pathtracer.NewVector(
+				float64(decoder.Vertices[face.Vertices[0]*3]),
+				float64(decoder.Vertices[face.Vertices[0]*3+1]),
+				float64(decoder.Vertices[face.Vertices[0]*3+2]),
+			),
+			pathtracer.NewVector(
+				float64(decoder.Vertices[face.Vertices[i+1]*3]),
+				float64(decoder.Vertices[face.Vertices[i+1]*3+1]),
+				float64(decoder.Vertices[face.Vertices[i+1]*3+2]),
+			),
+			pathtracer.NewVector(
+				float64(decoder.Vertices[face.Vertices[i+2]*3]),
+				float64(decoder.Vertices[face.Vertices[i+2]*3+1]),
+				float64(decoder.Vertices[face.Vertices[i+2]*3+2]),
+			),
+		}
+
+		normals := [3]pathtracer.Vector{
+			pathtracer.NewVector(
+				float64(decoder.Normals[face.Normals[0]*3]),
+				float64(decoder.Normals[face.Normals[0]*3+1]),
+				float64(decoder.Normals[face.Normals[0]*3+2]),
+			),
+			pathtracer.NewVector(
+				float64(decoder.Normals[face.Normals[i+1]*3]),
+				float64(decoder.Normals[face.Normals[i+1]*3+1]),
+				float64(decoder.Normals[face.Normals[i+1]*3+2]),
+			),
+			pathtracer.NewVector(
+				float64(decoder.Normals[face.Normals[i+2]*3]),
+				float64(decoder.Normals[face.Normals[i+2]*3+1]),
+				float64(decoder.Normals[face.Normals[i+2]*3+2]),
+			),
+		}
+
+		uvs := [3]objUVCoordinate{}
+		if len(decoder.Uvs) != 0 {
+			uvs[0] = objUVCoordinate{
+				float64(decoder.Uvs[face.Uvs[0]*2]),
+				float64(decoder.Uvs[face.Uvs[0]*2+1]),
+			}
+			uvs[1] = objUVCoordinate{
+				float64(decoder.Uvs[face.Uvs[i+1]*2]),
+				float64(decoder.Uvs[face.Uvs[i+1]*2+1]),
+			}
+			uvs[2] = objUVCoordinate{
+				float64(decoder.Uvs[face.Uvs[i+2]*2]),
+				float64(decoder.Uvs[face.Uvs[i+2]*2+1]),
+			}
+		}
+
+		triangle := objTriangle{
+			vertexes: vertexes,
+			normals:  normals,
+			uvs:      uvs,
+			material: objMaterial{source: decoder.Materials[face.Material]},
+			smooth:   face.Smooth,
+		}
+
+		callback(triangle)
+	}
+}
+
 // OBJScene contains obj geometry and materials loaded from the g3n game
 // engine library.
 type OBJScene struct {
-	decoder   *objLoader.Decoder
+	decoder   *obj.Decoder
 	triangles []objTriangle
-}
-
-type objTriangle [3]pathtracer.Vector
-
-func (t objTriangle) Vertex0() pathtracer.Vector { return t[0] }
-func (t objTriangle) Vertex1() pathtracer.Vector { return t[1] }
-func (t objTriangle) Vertex2() pathtracer.Vector { return t[2] }
-
-type dummyMaterial struct{}
-
-func (m dummyMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
-	return pathtracer.NewColor(hit.Position.X, hit.Position.Y, hit.Position.Z)
 }
 
 // Intersect finds the first geometry a ray passes through in the scene
 // and returns details about the intersection and its material.
 //
 // TODO: Optimize this method for performance.
-// TODO: Figure a way to return a material with the hit.
 func (s *OBJScene) Intersect(ray pathtracer.Ray) (hit pathtracer.Hit, material pathtracer.Material, ok bool) {
 	var closestPoint pathtracer.Vector
 	var closestNormal pathtracer.Vector
 	var closestDistance = math.MaxFloat64
+	var closestTriangle objTriangle
 
 	for _, triangle := range s.triangles {
 		distance, point, normal, didIntersect := scene.IntersectTriangle(ray, triangle)
@@ -79,6 +126,7 @@ func (s *OBJScene) Intersect(ray pathtracer.Ray) (hit pathtracer.Hit, material p
 		closestPoint = point
 		closestNormal = normal
 		closestDistance = distance
+		closestTriangle = triangle
 	}
 
 	if closestDistance == math.MaxFloat64 {
@@ -91,6 +139,31 @@ func (s *OBJScene) Intersect(ray pathtracer.Ray) (hit pathtracer.Hit, material p
 		Position: closestPoint,
 		Normal:   closestNormal,
 	}
-	material = dummyMaterial{}
+	material = closestTriangle.material
 	return
+}
+
+type objUVCoordinate [2]float64
+
+func (o objUVCoordinate) U() float64 { return o[0] }
+func (o objUVCoordinate) V() float64 { return o[1] }
+
+type objTriangle struct {
+	vertexes [3]pathtracer.Vector
+	uvs      [3]objUVCoordinate
+	normals  [3]pathtracer.Vector
+	material objMaterial
+	smooth   bool
+}
+
+func (t objTriangle) Vertex0() pathtracer.Vector { return t.vertexes[0] }
+func (t objTriangle) Vertex1() pathtracer.Vector { return t.vertexes[1] }
+func (t objTriangle) Vertex2() pathtracer.Vector { return t.vertexes[2] }
+
+type objMaterial struct {
+	source *obj.Material
+}
+
+func (m objMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
+	return pathtracer.NewColor(hit.Position.X, hit.Position.Y, hit.Position.Z)
 }
