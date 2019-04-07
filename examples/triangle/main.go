@@ -41,7 +41,7 @@ func main() {
 
 	pathtracer.Render(scene, camera, img, &pathtracer.RenderSettings{
 		BounceDepth:   5,
-		SamplesPerRay: 10,
+		SamplesPerRay: 100,
 	})
 
 	if err := img.Write(os.Stdout); err != nil {

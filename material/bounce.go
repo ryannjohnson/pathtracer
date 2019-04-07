@@ -1,7 +1,6 @@
 package material
 
 import (
-	"math"
 	"math/rand"
 
 	"github.com/ryannjohnson/pathtracer"
@@ -56,7 +55,7 @@ func randomDirectionWithinHemisphere(normal pathtracer.Vector) pathtracer.Vector
 		)
 
 		vectorLength := vector.Length()
-		if vectorLength >= 1 || vectorLength < math.SmallestNonzeroFloat64 {
+		if vectorLength >= 1 || vectorLength < pathtracer.EPS {
 			continue
 		}
 

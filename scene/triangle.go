@@ -36,7 +36,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 
 	// If they're perpendicular and equal zero, then the ray will never
 	// intersect the triangle's plane.
-	if math.Abs(cosineOfRayAndNormal) < math.SmallestNonzeroFloat64 {
+	if math.Abs(cosineOfRayAndNormal) < pathtracer.EPS {
 		return
 	}
 
@@ -66,7 +66,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 
 	// We don't want to intersect triangles that are at or behind the
 	// ray that's looking for them.
-	if distanceAlongRayFromOrigin <= 0 {
+	if distanceAlongRayFromOrigin < pathtracer.EPS {
 		return
 	}
 
