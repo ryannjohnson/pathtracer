@@ -1,6 +1,9 @@
 package pathtracer
 
-import "runtime"
+import (
+	"math/rand"
+	"runtime"
+)
 
 // RenderSettings describes options related to the performance and
 // output of the Render function.
@@ -35,20 +38,25 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 		yRatio = 1 / aspectRatio
 	}
 
+	xStep := xRatio / float64(width-1)
+	yStep := yRatio / float64(height-1)
+
 	numCPU := runtime.NumCPU()
 	threadDoneChan := make(chan struct{}, 0)
 
 	for i := 0; i < numCPU; i++ {
 		go func(cpuIndex int) {
 			for yPixel := cpuIndex; yPixel < height; yPixel += numCPU {
+				y := yRatio * (float64(yPixel)/float64(height-1) - 0.5) * -1 // Positive is up
 				for xPixel := 0; xPixel < width; xPixel++ {
-					x := xRatio * (float64(xPixel)/float64(width-1) - 0.5)       // Positive is right
-					y := yRatio * (float64(yPixel)/float64(height-1) - 0.5) * -1 // Positive is up
+					x := xRatio * (float64(xPixel)/float64(width-1) - 0.5) // Positive is right
 
 					// TODO: Implement interchangable samplers via RenderSettings.
 					colors := make([]Color, settings.SamplesPerRay)
 					for i := 0; i < settings.SamplesPerRay; i++ {
-						ray := camera.Cast(x, y)
+						xRand := (rand.Float64() - 0.5) * xStep
+						yRand := (rand.Float64() - 0.5) * yStep
+						ray := camera.Cast(x+xRand, y+yRand)
 						colors[i] = sampleScene(scene, ray, settings.BounceDepth)
 					}
 					color := averageColors(colors)
