@@ -169,16 +169,26 @@ type objMaterial struct {
 func (m objMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
 	color := pathtracer.NewColor(0, 0, 0)
 
-	if m.source.Diffuse.R > 0 || m.source.Diffuse.G > 0 || m.source.Diffuse.B > 0 {
+	if m.source.Diffuse.R >= pathtracer.EPS || m.source.Diffuse.G >= pathtracer.EPS || m.source.Diffuse.B >= pathtracer.EPS {
 		ray := pathtracer.Ray{
 			Origin:    hit.Position,
 			Direction: material.DiffuseBounce(hit.Normal),
 		}
 
 		colorFromScene := nextSample(ray)
-
 		colorToCamera := colorFromScene.Multiply(math32ToColor(m.source.Diffuse))
+		color = color.Add(colorToCamera)
+	}
 
+	if m.source.Specular.R >= pathtracer.EPS || m.source.Specular.G >= pathtracer.EPS || m.source.Specular.B >= pathtracer.EPS {
+		// TODO: Account for specular glossiness.
+		ray := pathtracer.Ray{
+			Origin:    hit.Position,
+			Direction: material.SpecularBounce(hit.Normal, hit.From.Direction),
+		}
+
+		colorFromScene := nextSample(ray)
+		colorToCamera := colorFromScene.Multiply(math32ToColor(m.source.Diffuse))
 		color = color.Add(colorToCamera)
 	}
 
