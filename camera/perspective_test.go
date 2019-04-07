@@ -26,7 +26,7 @@ func TestPerspective(t *testing.T) {
 			},
 		},
 		{
-			name:                 "should cast a from above origin when translated straight up",
+			name:                 "should cast a ray from above origin when translated straight up",
 			fov:                  30,
 			transformationMatrix: pathtracer.IdentityMatrix().Translate(pathtracer.NewVector(0, 1, 0)),
 			x:                    0,

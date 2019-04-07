@@ -18,6 +18,7 @@ func main() {
 	cameraMatrix = cameraMatrix.Rotate(pathtracer.AxisY, math.Pi/-4)
 	camera.SetTransformationMatrix(cameraMatrix)
 	camera.SetFieldOfView(45)
+	camera.SetDepthOfField(6, 0.25)
 
 	objFile, err := os.Open("./examples/triangle/scene.obj")
 	if err != nil {

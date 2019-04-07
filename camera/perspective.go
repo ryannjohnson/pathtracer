@@ -2,6 +2,7 @@ package camera
 
 import (
 	"math"
+	"math/rand"
 
 	"github.com/ryannjohnson/pathtracer"
 )
@@ -18,8 +19,17 @@ func NewPerspective() *Perspective {
 // casting rays from a point behind the camera in the world.
 //
 // Its default orientation is facing towards the positive Z axis.
+//
+// The depth of field distance refers to how far from the camera after
+// transformations will be the focal target in the scene.
+//
+// The depth of field radius describes how wide the circle will be that
+// new rays are cast from. This circle will be placed 1 distance unit
+// away from the focal target.
 type Perspective struct {
-	fieldOfView          float64 // Degrees [0, 180)
+	depthOfFieldDistance float64
+	depthOfFieldRadius   float64 // From lens
+	fieldOfView          float64 // Degrees
 	transformationMatrix pathtracer.Matrix
 }
 
@@ -35,28 +45,93 @@ type Perspective struct {
 // instead be cast to intersect the focal point in front of the camera.
 func (c Perspective) Cast(x, y float64) pathtracer.Ray {
 	// Find origin vector (relative to 0,0,0) from the fieldOfView.
-	radians := c.fieldOfView * math.Pi / 180
+	fieldOfViewRadians := c.fieldOfView * math.Pi / 180
 
 	// Find the direction for the x, y coordinate by using FOV as 100%.
 	m := pathtracer.IdentityMatrix()
-	m = m.Rotate(pathtracer.AxisX, y*radians)
-	m = m.Rotate(pathtracer.AxisY, x*radians)
+	m = m.Rotate(pathtracer.AxisX, y*fieldOfViewRadians)
+	m = m.Rotate(pathtracer.AxisY, x*fieldOfViewRadians)
 
 	direction := pathtracer.AxisZ.Transform(m)
 
 	// Find the final position for the ray's origin based on the circle
 	// created by the camera's field of view.
-	radius := 1 / radians
-	center := pathtracer.Vector{X: 0, Y: 0, Z: radius * -1}
+	focalLength := 1 / fieldOfViewRadians
+	center := pathtracer.Vector{X: 0, Y: 0, Z: focalLength * -1}
 
-	origin := center.Add(direction.Scale(radius))
+	// Where the pixel rests in 3D space on the lens of the camera.
+	origin := center.Add(direction.Scale(focalLength))
 
 	ray := pathtracer.Ray{
 		Origin:    origin,
 		Direction: direction,
 	}
 
-	return ray.Transform(c.transformationMatrix)
+	// Includes translation, rotation, and scale of the camera.
+	ray = ray.Transform(c.transformationMatrix)
+
+	if c.depthOfFieldRadius >= pathtracer.EPS {
+		// Slide the origin up to the part of the environment we want to be
+		// in complete focus. Do this now while we have the
+		focalOrigin := ray.Origin.Add(ray.Direction.Scale(c.depthOfFieldDistance))
+
+		// Create a vector perpendicular to the ray direction.
+		perpendicularAxis := arbitraryOrthogonal(ray.Direction).Normalize()
+
+		// Rotate the perpendicular vector around the ray by some random
+		// amount. This is important to ensure that samples are taken from
+		// all directions surrounding the focal target.
+		m = pathtracer.IdentityMatrix()
+		m = m.Rotate(ray.Direction, 2*math.Pi*rand.Float64())
+		perpendicularAxis = perpendicularAxis.Transform(m)
+
+		// Adjust the direction of the ray as if it were cast from a circle
+		// around its original place on the lens.
+		m = pathtracer.IdentityMatrix()
+		m = m.Rotate(perpendicularAxis, math.Atan2(c.depthOfFieldRadius, c.depthOfFieldDistance))
+		direction = ray.Direction.Transform(m)
+
+		// Slide the origin back down to the lens, using the new focal
+		// direction.
+		origin = focalOrigin.Sub(direction.Scale(c.depthOfFieldDistance))
+
+		ray = pathtracer.Ray{
+			Origin:    origin,
+			Direction: direction,
+		}
+	}
+
+	return ray
+}
+
+// Return an arbitrary vector perpendicular to the unit vector supplied.
+//
+// https://stackoverflow.com/a/43454629/5307109
+func arbitraryOrthogonal(v pathtracer.Vector) pathtracer.Vector {
+	w := pathtracer.NewVector(0, 0, 0)
+
+	if v.X < v.Y && v.X < v.Z {
+		w.X = 1
+	}
+	if v.Y <= v.X && v.Y < v.Z {
+		w.Y = 1
+	}
+	if v.Z <= v.X && v.Z <= v.Y {
+		w.Z = 1
+	}
+
+	return v.CrossProduct(w)
+}
+
+// SetDepthOfField sets the distance and radius of the depth of field.
+//
+// The distance is not scaled according to the camera's transformation
+// matrix.
+//
+// The radius is calculated as if the circle is positioned at the lens.
+func (c *Perspective) SetDepthOfField(distance, radius float64) {
+	c.depthOfFieldDistance = distance
+	c.depthOfFieldRadius = radius
 }
 
 // SetFieldOfView expects an angle in degrees.
