@@ -3,6 +3,7 @@ package g3n
 import (
 	"io"
 	"math"
+	"math/rand"
 
 	"github.com/g3n/engine/loader/obj"
 	"github.com/g3n/engine/math32"
@@ -166,13 +167,13 @@ type objMaterial struct {
 	source *obj.Material
 }
 
-func (m objMaterial) Sample(hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
+func (m objMaterial) Sample(random *rand.Rand, hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
 	color := pathtracer.NewColor(0, 0, 0)
 
 	if m.source.Diffuse.R >= pathtracer.EPS || m.source.Diffuse.G >= pathtracer.EPS || m.source.Diffuse.B >= pathtracer.EPS {
 		ray := pathtracer.Ray{
 			Origin:    hit.Position,
-			Direction: material.DiffuseBounce(hit.Normal),
+			Direction: material.DiffuseBounce(random, hit.Normal),
 		}
 
 		colorFromScene := nextSample(ray)

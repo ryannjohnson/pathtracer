@@ -3,6 +3,7 @@ package pathtracer
 import (
 	"math/rand"
 	"runtime"
+	"time"
 )
 
 // RenderSettings describes options related to the performance and
@@ -46,6 +47,7 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 
 	for i := 0; i < numCPU; i++ {
 		go func(cpuIndex int) {
+			random := rand.New(rand.NewSource(time.Now().UnixNano()))
 			for yPixel := cpuIndex; yPixel < height; yPixel += numCPU {
 				y := yRatio * (float64(yPixel)/float64(height-1) - 0.5) * -1 // Positive is up
 				for xPixel := 0; xPixel < width; xPixel++ {
@@ -54,10 +56,10 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 					// TODO: Implement interchangable samplers via RenderSettings.
 					colors := make([]Color, settings.SamplesPerRay)
 					for i := 0; i < settings.SamplesPerRay; i++ {
-						xRand := (rand.Float64() - 0.5) * xStep
-						yRand := (rand.Float64() - 0.5) * yStep
-						ray := camera.Cast(x+xRand, y+yRand)
-						colors[i] = sampleScene(scene, ray, settings.BounceDepth)
+						xRand := (random.Float64() - 0.5) * xStep
+						yRand := (random.Float64() - 0.5) * yStep
+						ray := camera.Cast(random, x+xRand, y+yRand)
+						colors[i] = sampleScene(random, scene, ray, settings.BounceDepth)
 					}
 					color := averageColors(colors)
 
@@ -73,7 +75,7 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 	}
 }
 
-func sampleScene(scene Scene, ray Ray, bouncesLeft int) Color {
+func sampleScene(random *rand.Rand, scene Scene, ray Ray, bouncesLeft int) Color {
 	if bouncesLeft <= 0 {
 		return black
 	}
@@ -84,10 +86,10 @@ func sampleScene(scene Scene, ray Ray, bouncesLeft int) Color {
 	}
 
 	nextSample := func(nextRay Ray) Color {
-		return sampleScene(scene, nextRay, bouncesLeft-1)
+		return sampleScene(random, scene, nextRay, bouncesLeft-1)
 	}
 
-	return material.Sample(hit, nextSample)
+	return material.Sample(random, hit, nextSample)
 }
 
 func averageColors(colors []Color) Color {

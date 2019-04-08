@@ -1,5 +1,7 @@
 package pathtracer
 
+import "math/rand"
+
 // Sampler converts a ray into a color.
 //
 // In the context of the pathtracer, the ray goes into a scene,
@@ -13,5 +15,5 @@ type Sampler func(Ray) Color
 //
 // Materials can also be lights, themselves.
 type Material interface {
-	Sample(hit Hit, nextSample Sampler) Color
+	Sample(random *rand.Rand, hit Hit, nextSample Sampler) Color
 }

@@ -43,7 +43,7 @@ type Perspective struct {
 // When depth of field is applied, the origin of the ray will no longer
 // originate at the x, y coordinate of the original plane but will
 // instead be cast to intersect the focal point in front of the camera.
-func (c Perspective) Cast(x, y float64) pathtracer.Ray {
+func (c Perspective) Cast(random *rand.Rand, x, y float64) pathtracer.Ray {
 	// Find origin vector (relative to 0,0,0) from the fieldOfView.
 	fieldOfViewRadians := c.fieldOfView * math.Pi / 180
 
@@ -82,7 +82,7 @@ func (c Perspective) Cast(x, y float64) pathtracer.Ray {
 		// amount. This is important to ensure that samples are taken from
 		// all directions surrounding the focal target.
 		m = pathtracer.IdentityMatrix()
-		m = m.Rotate(ray.Direction, 2*math.Pi*rand.Float64())
+		m = m.Rotate(ray.Direction, 2*math.Pi*random.Float64())
 		perpendicularAxis = perpendicularAxis.Transform(m)
 
 		// Adjust the direction of the ray as if it were cast from a circle
