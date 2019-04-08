@@ -8,7 +8,7 @@ import (
 	"github.com/ryannjohnson/pathtracer"
 	"github.com/ryannjohnson/pathtracer/camera"
 	"github.com/ryannjohnson/pathtracer/image"
-	sceneLoader "github.com/ryannjohnson/pathtracer/scene/loader"
+	"github.com/ryannjohnson/pathtracer/scene/obj"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
 		return
 	}
 
-	scene, err := sceneLoader.NewOBJScene(objFile, mtlFile)
+	scene, err := obj.NewScene(objFile, mtlFile)
 	if err != nil {
 		fmt.Println(err)
 		return
