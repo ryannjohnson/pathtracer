@@ -1,6 +1,7 @@
 package camera
 
 import (
+	"math/rand"
 	"testing"
 
 	"github.com/ryannjohnson/pathtracer"
@@ -40,10 +41,11 @@ func TestPerspective(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
+			random := rand.New(rand.NewSource(0))
 			camera := NewPerspective()
 			camera.SetFieldOfView(testCase.fov)
 			camera.SetTransformationMatrix(testCase.transformationMatrix)
-			ray := camera.Cast(testCase.x, testCase.y)
+			ray := camera.Cast(random, testCase.x, testCase.y)
 			if ray != testCase.ray {
 				t.Fatal("ray", ray, "doesn't equal expected", testCase.ray)
 			}
