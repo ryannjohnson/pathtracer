@@ -75,8 +75,8 @@ func (v Vector) Scale(multiplier float64) Vector {
 	return NewVector(v.X*multiplier, v.Y*multiplier, v.Z*multiplier)
 }
 
-// Sub results in the difference of two vectors.
-func (v Vector) Sub(w Vector) Vector {
+// Subtract results in the difference of two vectors.
+func (v Vector) Subtract(w Vector) Vector {
 	return NewVector(v.X-w.X, v.Y-w.Y, v.Z-w.Z)
 }
 

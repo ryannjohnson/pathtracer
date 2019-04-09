@@ -20,8 +20,8 @@ type Triangle interface {
 // http://geomalgorithms.com/a06-_intersect-2.html
 func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayFromOrigin float64, intersectionPoint, triangleNormal pathtracer.Vector, ok bool) {
 	// Edges can be represented by vectors.
-	v0v1 := triangle.Vertex0().Sub(triangle.Vertex1())
-	v0v2 := triangle.Vertex0().Sub(triangle.Vertex2())
+	v0v1 := triangle.Vertex0().Subtract(triangle.Vertex1())
+	v0v2 := triangle.Vertex0().Subtract(triangle.Vertex2())
 
 	// Unit vector representing the normal of the triangle.
 	triangleNormal = v0v1.CrossProduct(v0v2).Normalize()
@@ -52,7 +52,7 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 	// they're at a 60 degree angle away from each other, then the
 	// distance will be half of the line's length (cosine of 30
 	// degrees).
-	v0r0 := triangle.Vertex0().Sub(ray.Origin)
+	v0r0 := triangle.Vertex0().Subtract(ray.Origin)
 	closestDistanceFromRayOriginToPlane := triangleNormal.DotProduct(v0r0)
 
 	// The closest distance from the ray origin to the triangle plane is
@@ -79,24 +79,24 @@ func IntersectTriangle(ray pathtracer.Ray, triangle Triangle) (distanceAlongRayF
 	var edgesCrossProduct pathtracer.Vector
 
 	// Vertex0
-	triangleEdge = triangle.Vertex1().Sub(triangle.Vertex0())
-	pointEdge = intersectionPoint.Sub(triangle.Vertex0())
+	triangleEdge = triangle.Vertex1().Subtract(triangle.Vertex0())
+	pointEdge = intersectionPoint.Subtract(triangle.Vertex0())
 	edgesCrossProduct = triangleEdge.CrossProduct(pointEdge)
 	if triangleNormal.DotProduct(edgesCrossProduct) < 0 {
 		return
 	}
 
 	// Vertex1
-	triangleEdge = triangle.Vertex2().Sub(triangle.Vertex1())
-	pointEdge = intersectionPoint.Sub(triangle.Vertex1())
+	triangleEdge = triangle.Vertex2().Subtract(triangle.Vertex1())
+	pointEdge = intersectionPoint.Subtract(triangle.Vertex1())
 	edgesCrossProduct = triangleEdge.CrossProduct(pointEdge)
 	if triangleNormal.DotProduct(edgesCrossProduct) < 0 {
 		return
 	}
 
 	// Vertex2
-	triangleEdge = triangle.Vertex0().Sub(triangle.Vertex2())
-	pointEdge = intersectionPoint.Sub(triangle.Vertex2())
+	triangleEdge = triangle.Vertex0().Subtract(triangle.Vertex2())
+	pointEdge = intersectionPoint.Subtract(triangle.Vertex2())
 	edgesCrossProduct = triangleEdge.CrossProduct(pointEdge)
 	if triangleNormal.DotProduct(edgesCrossProduct) < 0 {
 		return

@@ -93,7 +93,7 @@ func (c Perspective) Cast(random *rand.Rand, x, y float64) pathtracer.Ray {
 
 		// Slide the origin back down to the lens, using the new focal
 		// direction.
-		origin = focalOrigin.Sub(direction.Scale(c.depthOfFieldDistance))
+		origin = focalOrigin.Subtract(direction.Scale(c.depthOfFieldDistance))
 
 		ray = pathtracer.Ray{
 			Origin:    origin,
