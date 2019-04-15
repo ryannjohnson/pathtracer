@@ -9,8 +9,10 @@ import (
 // DiffuseBounce returns a unit vector in the hemisphere of the supplied
 // normal.
 func DiffuseBounce(random *rand.Rand, normal pathtracer.Vector) pathtracer.Vector {
+	var vector pathtracer.Vector
+
 	for {
-		vector := pathtracer.NewVector(
+		vector = pathtracer.NewVector(
 			random.Float64()*2-1,
 			random.Float64()*2-1,
 			random.Float64()*2-1,
@@ -21,12 +23,11 @@ func DiffuseBounce(random *rand.Rand, normal pathtracer.Vector) pathtracer.Vecto
 			continue
 		}
 
-		vector = vector.Normalize()
+		// Flips the direction of the vector if it's in the opposite
+		// hemisphere.
+		dotProduct := vector.DotProduct(normal)
+		vector = vector.Scale(dotProduct)
 
-		if vector.DotProduct(normal) < 0 {
-			return pathtracer.NewVector(vector.X*-1, vector.Y*-1, vector.Z*-1)
-		}
-
-		return vector
+		return vector.Normalize()
 	}
 }
