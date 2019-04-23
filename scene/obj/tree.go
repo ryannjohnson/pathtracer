@@ -40,17 +40,17 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 		}
 	}
 
-	hasNoTriangles := len(triangleIndexes) == 0
+	hasNoTriangles := len(triangleIndexesInBox) == 0
 	if hasNoTriangles {
 		return nil
 	}
 
-	if len(triangleIndexes) <= 3 {
+	if len(triangleIndexesInBox) <= 3 {
 		// TODO: Test using 1 and 2 as the thresholds and measure
 		// performance between identical renders.
 		node := &treeNode{
 			box:       box,
-			triangles: trianglesByIndexes(triangles, triangleIndexes),
+			triangles: trianglesByIndexes(triangles, triangleIndexesInBox),
 		}
 		return node
 	}
@@ -58,7 +58,7 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 	// No need to subdivide the containing box anymore if the smallest
 	// triangle is bigger than the largest side of the box.
 	var minTriangleArea = math.MaxFloat64
-	for _, triangleIndex := range triangleIndexes {
+	for _, triangleIndex := range triangleIndexesInBox {
 		currentTriangle := triangles[triangleIndex]
 
 		v0v1 := currentTriangle.Vertex0().Subtract(currentTriangle.Vertex1())
@@ -76,15 +76,15 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 		// has diminished its returns by now.
 		node := &treeNode{
 			box:       box,
-			triangles: trianglesByIndexes(triangles, triangleIndexes),
+			triangles: trianglesByIndexes(triangles, triangleIndexesInBox),
 		}
 		return node
 	}
 
 	boxA, boxB := splitBoxByLongestAxis(box)
 
-	nodeA := buildTreeNode(triangles, triangleIndexes, boxA)
-	nodeB := buildTreeNode(triangles, triangleIndexes, boxB)
+	nodeA := buildTreeNode(triangles, triangleIndexesInBox, boxA)
+	nodeB := buildTreeNode(triangles, triangleIndexesInBox, boxB)
 
 	if nodeA != nil && nodeB != nil {
 		return &treeNode{
