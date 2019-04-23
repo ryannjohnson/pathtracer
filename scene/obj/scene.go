@@ -2,11 +2,9 @@ package obj
 
 import (
 	"io"
-	"math"
 
 	"github.com/g3n/engine/loader/obj"
 	"github.com/ryannjohnson/pathtracer"
-	"github.com/ryannjohnson/pathtracer/scene"
 )
 
 // NewScene loads from .obj and .mtl files to produce a scene.
@@ -26,52 +24,20 @@ func NewScene(objReader, mtlReader io.Reader) (*Scene, error) {
 		}
 	}
 
-	return &Scene{decoder, triangles}, nil
+	treeRoot := newTree(triangles)
+
+	return &Scene{decoder, treeRoot}, nil
 }
 
 // Scene contains obj geometry and materials loaded from the g3n game
 // engine library.
 type Scene struct {
-	decoder   *obj.Decoder
-	triangles []triangle
+	decoder *obj.Decoder
+	tree    *tree
 }
 
 // Intersect finds the first geometry a ray passes through in the scene
 // and returns details about the intersection and its material.
-//
-// TODO: Optimize this method for performance.
 func (s *Scene) Intersect(ray pathtracer.Ray) (hit pathtracer.Hit, material pathtracer.Material, ok bool) {
-	var closestPoint pathtracer.Vector
-	var closestNormal pathtracer.Vector
-	var closestDistance = math.MaxFloat64
-	var closestTriangle triangle
-
-	for _, faceTriangle := range s.triangles {
-		distance, point, normal, didIntersect := scene.IntersectTriangle(ray, faceTriangle)
-		if !didIntersect {
-			continue
-		}
-
-		if closestDistance < distance {
-			continue
-		}
-
-		closestPoint = point
-		closestNormal = normal
-		closestDistance = distance
-		closestTriangle = faceTriangle
-	}
-
-	if closestDistance == math.MaxFloat64 {
-		return
-	}
-
-	ok = true
-	hit = pathtracer.Hit{
-		From:     ray,
-		Position: closestPoint,
-		Normal:   closestNormal,
-	}
-	material = closestTriangle.material
-	return
+	return s.tree.intersect(ray)
 }

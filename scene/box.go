@@ -15,18 +15,29 @@ type Box struct {
 
 // NewBox creates a box according to any two vectors as its furthest
 // corners.
-func NewBox(a, b pathtracer.Vector) Box {
-	return Box{
-		max: pathtracer.NewVector(
-			math.Max(a.X, b.X),
-			math.Max(a.Y, b.Y),
-			math.Max(a.Z, b.Z),
-		),
-		min: pathtracer.NewVector(
-			math.Min(a.X, b.X),
-			math.Min(a.Y, b.Y),
-			math.Min(a.Z, b.Z),
-		),
+func NewBox(min, max pathtracer.Vector) Box {
+	return Box{max, min}
+}
+
+// Min returns the corner of the box corresponding to the negative
+// direction of each axis.
+func (b Box) Min() pathtracer.Vector { return b.min }
+
+// Max returns the corner of the box corresponding to the positive
+// direction of each axis.
+func (b Box) Max() pathtracer.Vector { return b.max }
+
+// Vertexes returns each of the box's eight vertexes.
+func (b Box) Vertexes() []pathtracer.Vector {
+	return []pathtracer.Vector{
+		pathtracer.NewVector(b.min.X, b.min.Y, b.min.Z),
+		pathtracer.NewVector(b.max.X, b.min.Y, b.min.Z),
+		pathtracer.NewVector(b.min.X, b.max.Y, b.min.Z),
+		pathtracer.NewVector(b.min.X, b.min.Y, b.max.Z),
+		pathtracer.NewVector(b.min.X, b.max.Y, b.max.Z),
+		pathtracer.NewVector(b.max.X, b.min.Y, b.max.Z),
+		pathtracer.NewVector(b.max.X, b.max.Y, b.min.Z),
+		pathtracer.NewVector(b.max.X, b.max.Y, b.max.Z),
 	}
 }
 
@@ -70,5 +81,84 @@ func (b Box) IntersectsRay(ray pathtracer.Ray) (tmin, tmax float64, ok bool) {
 	}
 
 	ok = tmin <= tmax
+	return
+}
+
+// IntersectsTriangle returns true if there is no separating axis
+// between the box and the triangle.
+//
+// https://stackoverflow.com/questions/17458562/efficient-aabb-triangle-intersection-in-c-sharp
+// http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/pubs/tribox.pdf
+func (b Box) IntersectsTriangle(triangle Triangle) bool {
+	// Try to find separating planes along the X, Y, and Z axes.
+	boxEdges := []pathtracer.Vector{pathtracer.AxisX, pathtracer.AxisY, pathtracer.AxisZ}
+	triangleVertexes := []pathtracer.Vector{triangle.Vertex0(), triangle.Vertex1(), triangle.Vertex2()}
+	triangleMin, triangleMax := projectDistanceAlongAxis(triangleVertexes, pathtracer.AxisX)
+	if triangleMin > b.max.X || triangleMax < b.min.X {
+		return false
+	}
+	triangleMin, triangleMax = projectDistanceAlongAxis(triangleVertexes, pathtracer.AxisY)
+	if triangleMin > b.max.Y || triangleMax < b.min.Y {
+		return false
+	}
+	triangleMin, triangleMax = projectDistanceAlongAxis(triangleVertexes, pathtracer.AxisZ)
+	if triangleMin > b.max.Z || triangleMax < b.min.Z {
+		return false
+	}
+
+	// Try to see if the triangle is "parallel" to the box in the way
+	// that its separating plane is parallel to the triangle.
+	v0v1 := triangle.Vertex0().Subtract(triangle.Vertex1())
+	v0v2 := triangle.Vertex0().Subtract(triangle.Vertex2())
+	triangleNormal := v0v1.CrossProduct(v0v2).Normalize()
+	triangleDistanceFromOrigin := triangleNormal.DotProduct(triangle.Vertex0())
+	boxVertexes := b.Vertexes()
+
+	boxMin, boxMax := projectDistanceAlongAxis(boxVertexes, triangleNormal)
+	if boxMin > triangleDistanceFromOrigin || boxMax < triangleDistanceFromOrigin {
+		return false
+	}
+
+	// When the triangle is parallel-ish to the box _and_ strattles the
+	// boxes axes, then we find gaps by projecting the shapes on planes
+	// parallel to both shapes.
+	//
+	// The cross product finds the axis perpendicular to the input
+	// vectors.
+	v1v2 := triangle.Vertex1().Subtract(triangle.Vertex2())
+	triangleEdges := []pathtracer.Vector{v0v1, v0v2, v1v2}
+	for _, triangleEdge := range triangleEdges {
+		for _, boxEdge := range boxEdges {
+			axis := triangleEdge.CrossProduct(boxEdge)
+			triangleMin, triangleMax := projectDistanceAlongAxis(triangleVertexes, axis)
+			boxMin, boxMax = projectDistanceAlongAxis(boxVertexes, axis)
+
+			if boxMin > triangleMax || boxMax < triangleMin {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+// projectDistanceAlongAxis determines the closest and farthest
+// distances along an arbitrary axis that any of the included vectors
+// reach. Distances are all relative to the origin.
+func projectDistanceAlongAxis(vertexes []pathtracer.Vector, axis pathtracer.Vector) (tmin, tmax float64) {
+	tmin = math.MaxFloat64
+	tmax = math.MaxFloat64 * -1
+
+	for _, vertex := range vertexes {
+		distance := vertex.DotProduct(axis)
+
+		if tmin > distance {
+			tmin = distance
+		}
+		if tmax < distance {
+			tmax = distance
+		}
+	}
+
 	return
 }
