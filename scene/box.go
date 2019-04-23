@@ -9,14 +9,14 @@ import (
 // Box is a 3D construct aligned to the 3 axes in the scene. It cannot
 // be rotated away from this orientation.
 type Box struct {
-	max pathtracer.Vector
 	min pathtracer.Vector
+	max pathtracer.Vector
 }
 
 // NewBox creates a box according to any two vectors as its furthest
 // corners.
 func NewBox(min, max pathtracer.Vector) Box {
-	return Box{max, min}
+	return Box{min, max}
 }
 
 // Min returns the corner of the box corresponding to the negative
@@ -110,7 +110,7 @@ func (b Box) IntersectsTriangle(triangle Triangle) bool {
 	// that its separating plane is parallel to the triangle.
 	v0v1 := triangle.Vertex0().Subtract(triangle.Vertex1())
 	v0v2 := triangle.Vertex0().Subtract(triangle.Vertex2())
-	triangleNormal := v0v1.CrossProduct(v0v2).Normalize()
+	triangleNormal := v0v1.CrossProduct(v0v2)
 	triangleDistanceFromOrigin := triangleNormal.DotProduct(triangle.Vertex0())
 	boxVertexes := b.Vertexes()
 
