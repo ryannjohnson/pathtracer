@@ -7,6 +7,22 @@ import (
 	"github.com/ryannjohnson/pathtracer/scene"
 )
 
+type tree struct {
+	root      *treeNode
+	triangles []triangle
+}
+
+func (t *tree) intersect(ray pathtracer.Ray) (pathtracer.Hit, material, bool) {
+	return intersectTreeNode(t.triangles, t.root, ray)
+}
+
+type treeNode struct {
+	box             scene.Box
+	triangleIndexes []int
+	left            *treeNode
+	right           *treeNode
+}
+
 func newTree(triangles []triangle) *tree {
 	// Get the bounding box for the entire canvas so we can include all
 	// the geometry in the scene.
@@ -109,15 +125,6 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 	panic("triangles were dropped in the tree building process")
 }
 
-type tree struct {
-	root      *treeNode
-	triangles []triangle
-}
-
-func (t *tree) intersect(ray pathtracer.Ray) (pathtracer.Hit, material, bool) {
-	return intersectTreeNode(t.triangles, t.root, ray)
-}
-
 func intersectTreeNode(triangles []triangle, tn *treeNode, ray pathtracer.Ray) (hit pathtracer.Hit, hitMaterial material, hitOk bool) {
 	if tn.left != nil && tn.right != nil {
 		leftTMin, _, leftOk := tn.left.box.IntersectsRay(ray)
@@ -194,13 +201,6 @@ func intersectTreeNode(triangles []triangle, tn *treeNode, ray pathtracer.Ray) (
 	}
 	hitMaterial = closestTriangle.material
 	return
-}
-
-type treeNode struct {
-	box             scene.Box
-	triangleIndexes []int
-	left            *treeNode
-	right           *treeNode
 }
 
 func trianglesByIndexes(triangles []triangle, indexes []int) []triangle {
