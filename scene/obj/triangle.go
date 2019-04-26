@@ -1,8 +1,11 @@
 package obj
 
 import (
+	"math"
+
 	"github.com/g3n/engine/loader/obj"
 	"github.com/ryannjohnson/pathtracer"
+	"github.com/ryannjohnson/pathtracer/scene"
 )
 
 type objUVCoordinate [2]float64
@@ -21,6 +24,21 @@ type triangle struct {
 func (t triangle) Vertex0() pathtracer.Vector { return t.vertexes[0] }
 func (t triangle) Vertex1() pathtracer.Vector { return t.vertexes[1] }
 func (t triangle) Vertex2() pathtracer.Vector { return t.vertexes[2] }
+
+func (t triangle) Intersect(ray pathtracer.Ray) (distanceAlongRayFromOrigin float64, intersectionPoint, triangleNormal pathtracer.Vector, ok bool) {
+	return scene.IntersectTriangle(ray, t)
+}
+
+func (t triangle) IntersectsBox(box scene.Box) bool {
+	return box.IntersectsTriangle(t)
+}
+
+func (t triangle) Length() float64 {
+	v0v1 := t.Vertex0().Subtract(t.Vertex1()).Length()
+	v1v2 := t.Vertex1().Subtract(t.Vertex2()).Length()
+	v2v0 := t.Vertex2().Subtract(t.Vertex0()).Length()
+	return math.Max(math.Max(v0v1, v1v2), v2v0)
+}
 
 func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(triangle)) {
 	numTriangles := len(face.Vertices) - 2
