@@ -29,7 +29,7 @@ func newTree(triangles []triangle) *tree {
 
 	rootNode := buildTreeNode(triangles, triangleIndexes, rootBox)
 
-	return &tree{rootNode}
+	return &tree{rootNode, triangles}
 }
 
 func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *treeNode {
@@ -49,8 +49,8 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 		// TODO: Test using 1 and 2 as the thresholds and measure
 		// performance between identical renders.
 		node := &treeNode{
-			box:       box,
-			triangles: trianglesByIndexes(triangles, triangleIndexesInBox),
+			box:             box,
+			triangleIndexes: triangleIndexesInBox,
 		}
 		return node
 	}
@@ -75,8 +75,8 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 		// Boxes are smaller than triangles at this point. Subdivision
 		// has diminished its returns by now.
 		node := &treeNode{
-			box:       box,
-			triangles: trianglesByIndexes(triangles, triangleIndexesInBox),
+			box:             box,
+			triangleIndexes: triangleIndexesInBox,
 		}
 		return node
 	}
@@ -110,14 +110,15 @@ func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *
 }
 
 type tree struct {
-	root *treeNode
+	root      *treeNode
+	triangles []triangle
 }
 
 func (t *tree) intersect(ray pathtracer.Ray) (pathtracer.Hit, material, bool) {
-	return intersectTreeNode(t.root, ray)
+	return intersectTreeNode(t.triangles, t.root, ray)
 }
 
-func intersectTreeNode(tn *treeNode, ray pathtracer.Ray) (hit pathtracer.Hit, hitMaterial material, hitOk bool) {
+func intersectTreeNode(triangles []triangle, tn *treeNode, ray pathtracer.Ray) (hit pathtracer.Hit, hitMaterial material, hitOk bool) {
 	if tn.left != nil && tn.right != nil {
 		leftTMin, _, leftOk := tn.left.box.IntersectsRay(ray)
 		rightTMin, _, rightOk := tn.right.box.IntersectsRay(ray)
@@ -129,31 +130,31 @@ func intersectTreeNode(tn *treeNode, ray pathtracer.Ray) (hit pathtracer.Hit, hi
 			// Since we know the treeNodees don't overlap, it's safe to
 			// assume that tMin can be used to compare the two.
 			if leftTMin < rightTMin {
-				firstHit, firstHitMaterial, firstHitOk := intersectTreeNode(tn.left, ray)
+				firstHit, firstHitMaterial, firstHitOk := intersectTreeNode(triangles, tn.left, ray)
 				if firstHitOk {
 					hit = firstHit
 					hitMaterial = firstHitMaterial
 					hitOk = true
 					return
 				}
-				return intersectTreeNode(tn.right, ray)
+				return intersectTreeNode(triangles, tn.right, ray)
 			}
-			firstHit, firstHitMaterial, firstHitOk := intersectTreeNode(tn.right, ray)
+			firstHit, firstHitMaterial, firstHitOk := intersectTreeNode(triangles, tn.right, ray)
 			if firstHitOk {
 				hit = firstHit
 				hitMaterial = firstHitMaterial
 				hitOk = true
 				return
 			}
-			return intersectTreeNode(tn.left, ray)
+			return intersectTreeNode(triangles, tn.left, ray)
 		}
 
 		if leftOk {
-			return intersectTreeNode(tn.left, ray)
+			return intersectTreeNode(triangles, tn.left, ray)
 		}
 
 		if rightOk {
-			return intersectTreeNode(tn.right, ray)
+			return intersectTreeNode(triangles, tn.right, ray)
 		}
 
 		return
@@ -164,7 +165,8 @@ func intersectTreeNode(tn *treeNode, ray pathtracer.Ray) (hit pathtracer.Hit, hi
 	var closestDistance = math.MaxFloat64
 	var closestTriangle triangle
 
-	for _, faceTriangle := range tn.triangles {
+	for _, triangleIndex := range tn.triangleIndexes {
+		faceTriangle := triangles[triangleIndex]
 		distance, point, normal, didIntersect := scene.IntersectTriangle(ray, faceTriangle)
 		if !didIntersect {
 			continue
@@ -195,10 +197,10 @@ func intersectTreeNode(tn *treeNode, ray pathtracer.Ray) (hit pathtracer.Hit, hi
 }
 
 type treeNode struct {
-	box       scene.Box
-	triangles []triangle
-	left      *treeNode
-	right     *treeNode
+	box             scene.Box
+	triangleIndexes []int
+	left            *treeNode
+	right           *treeNode
 }
 
 func trianglesByIndexes(triangles []triangle, indexes []int) []triangle {
