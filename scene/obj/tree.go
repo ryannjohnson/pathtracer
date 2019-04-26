@@ -172,10 +172,23 @@ func intersectTreeNode(triangles []triangle, tn *treeNode, ray pathtracer.Ray) (
 	var closestDistance = math.MaxFloat64
 	var closestTriangle triangle
 
+	// Use these distances to determine if the triangle intersections
+	// happen within the volume of the box.
+	//
+	// For example, if the current box contains a ground plane that
+	// eventually would be intersected but not inside the current
+	// box, then it cannot be counted as valid _yet_.
+	tMin, tMax, _ := tn.box.IntersectsRay(ray)
+
 	for _, triangleIndex := range tn.triangleIndexes {
 		faceTriangle := triangles[triangleIndex]
 		distance, point, normal, didIntersect := scene.IntersectTriangle(ray, faceTriangle)
 		if !didIntersect {
+			continue
+		}
+
+		if distance < tMin || distance > tMax {
+			// Intersected outside of the box's volume.
 			continue
 		}
 
