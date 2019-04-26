@@ -34,9 +34,9 @@ func newTree(triangles []triangle) *tree {
 
 func buildTreeNode(triangles []triangle, triangleIndexes []int, box scene.Box) *treeNode {
 	triangleIndexesInBox := make([]int, 0)
-	for i := range triangleIndexes {
-		if box.IntersectsTriangle(triangles[i]) {
-			triangleIndexesInBox = append(triangleIndexesInBox, i)
+	for _, index := range triangleIndexes {
+		if box.IntersectsTriangle(triangles[index]) {
+			triangleIndexesInBox = append(triangleIndexesInBox, index)
 		}
 	}
 
