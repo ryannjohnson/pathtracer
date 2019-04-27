@@ -43,7 +43,7 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 	yStep := yRatio / float64(height-1)
 
 	numCPU := runtime.NumCPU()
-	threadDoneChan := make(chan struct{}, 0)
+	pixelColorChan := make(chan pixelColor, width*height)
 
 	for i := 0; i < numCPU; i++ {
 		go func(cpuIndex int) {
@@ -64,16 +64,23 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 					}
 					color := averageColors(colors)
 
-					image.Set(xPixel, yPixel, color)
+					pixelColorChan <- pixelColor{xPixel, yPixel, color}
 				}
 			}
-			threadDoneChan <- struct{}{}
 		}(i)
 	}
 
-	for i := 0; i < numCPU; i++ {
-		<-threadDoneChan
+	pixelsLeft := width * height
+	for pixelsLeft > 0 {
+		pc := <-pixelColorChan
+		image.Set(pc.x, pc.y, pc.color)
+		pixelsLeft--
 	}
+}
+
+type pixelColor struct {
+	x, y  int
+	color Color
 }
 
 func sampleScene(random *rand.Rand, scene Scene, ray Ray, bouncesLeft int) Color {
