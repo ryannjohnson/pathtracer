@@ -16,11 +16,11 @@ func NewLegacyScene(objReader, mtlReader io.Reader) (*LegacyScene, error) {
 		return nil, err
 	}
 
-	triangles := make([]triangle, 0)
+	triangles := make([]objTriangle, 0)
 
 	for _, object := range decoder.Objects {
 		for _, face := range object.Faces {
-			readTriangles(decoder, face, func(faceTriangle triangle) {
+			readTriangles(decoder, face, func(faceTriangle objTriangle) {
 				triangles = append(triangles, faceTriangle)
 			})
 		}
@@ -33,7 +33,7 @@ func NewLegacyScene(objReader, mtlReader io.Reader) (*LegacyScene, error) {
 // game engine library.
 type LegacyScene struct {
 	decoder   *obj.Decoder
-	triangles []triangle
+	triangles []objTriangle
 }
 
 // Intersect finds the first geometry a ray passes through in the scene
@@ -42,7 +42,7 @@ func (s *LegacyScene) Intersect(ray pathtracer.Ray) (hit pathtracer.Hit, materia
 	var closestPoint pathtracer.Vector
 	var closestNormal pathtracer.Vector
 	var closestDistance = math.MaxFloat64
-	var closestTriangle triangle
+	var closestTriangle objTriangle
 
 	for _, faceTriangle := range s.triangles {
 		distance, point, normal, didIntersect := scene.IntersectTriangle(ray, faceTriangle)

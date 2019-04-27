@@ -13,7 +13,7 @@ type objUVCoordinate [2]float64
 func (o objUVCoordinate) U() float64 { return o[0] }
 func (o objUVCoordinate) V() float64 { return o[1] }
 
-type triangle struct {
+type objTriangle struct {
 	vertexes [3]pathtracer.Vector
 	uvs      [3]objUVCoordinate
 	normals  [3]pathtracer.Vector
@@ -21,19 +21,19 @@ type triangle struct {
 	smooth   bool
 }
 
-func (t triangle) Vertex0() pathtracer.Vector { return t.vertexes[0] }
-func (t triangle) Vertex1() pathtracer.Vector { return t.vertexes[1] }
-func (t triangle) Vertex2() pathtracer.Vector { return t.vertexes[2] }
+func (t objTriangle) Vertex0() pathtracer.Vector { return t.vertexes[0] }
+func (t objTriangle) Vertex1() pathtracer.Vector { return t.vertexes[1] }
+func (t objTriangle) Vertex2() pathtracer.Vector { return t.vertexes[2] }
 
-func (t triangle) Intersect(ray pathtracer.Ray) (distanceAlongRayFromOrigin float64, intersectionPoint, triangleNormal pathtracer.Vector, ok bool) {
+func (t objTriangle) Intersect(ray pathtracer.Ray) (distanceAlongRayFromOrigin float64, intersectionPoint, objTriangleNormal pathtracer.Vector, ok bool) {
 	return scene.IntersectTriangle(ray, t)
 }
 
-func (t triangle) IntersectsBox(box scene.Box) bool {
+func (t objTriangle) IntersectsBox(box scene.Box) bool {
 	return box.IntersectsTriangle(t)
 }
 
-func (t triangle) BoundingBox() scene.Box {
+func (t objTriangle) BoundingBox() scene.Box {
 	min := pathtracer.NewVector(math.MaxFloat64, math.MaxFloat64, math.MaxFloat64)
 	max := pathtracer.NewVector(math.MaxFloat64*-1, math.MaxFloat64*-1, math.MaxFloat64*-1)
 	for _, vertex := range t.vertexes {
@@ -48,7 +48,7 @@ func (t triangle) BoundingBox() scene.Box {
 	return box
 }
 
-func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(triangle)) {
+func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(objTriangle)) {
 	numTriangles := len(face.Vertices) - 2
 	for i := 0; i < numTriangles; i++ {
 		vertexes := [3]pathtracer.Vector{
@@ -103,7 +103,7 @@ func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(triangle))
 			}
 		}
 
-		faceTriangle := triangle{
+		faceTriangle := objTriangle{
 			vertexes: vertexes,
 			normals:  normals,
 			uvs:      uvs,

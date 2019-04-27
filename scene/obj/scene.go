@@ -13,7 +13,7 @@ import (
 // engine library.
 type Scene struct {
 	tree      *scene.TreeNode
-	triangles []triangle
+	triangles []objTriangle
 	shapes    []scene.Shape
 }
 
@@ -24,11 +24,11 @@ func NewScene(objReader, mtlReader io.Reader) (*Scene, error) {
 		return nil, err
 	}
 
-	triangles := make([]triangle, 0)
+	triangles := make([]objTriangle, 0)
 
 	for _, object := range decoder.Objects {
 		for _, face := range object.Faces {
-			readTriangles(decoder, face, func(faceTriangle triangle) {
+			readTriangles(decoder, face, func(faceTriangle objTriangle) {
 				triangles = append(triangles, faceTriangle)
 			})
 		}
@@ -60,10 +60,12 @@ func NewScene(objReader, mtlReader io.Reader) (*Scene, error) {
 	return &Scene{rootNode, triangles, shapes}, nil
 }
 
+// Clone creates a full-data copy of the scene's contents. Useful for
+// multiprocessing, each process with its own copy of the scene.
 func (s *Scene) Clone() pathtracer.Scene {
 	output := &Scene{
 		tree:      s.tree.Clone(),
-		triangles: make([]triangle, len(s.triangles)),
+		triangles: make([]objTriangle, len(s.triangles)),
 		shapes:    make([]scene.Shape, len(s.shapes)),
 	}
 	for i := range s.triangles {
