@@ -47,6 +47,7 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 
 	for i := 0; i < numCPU; i++ {
 		go func(cpuIndex int) {
+			localScene := scene.Clone()
 			random := rand.New(rand.NewSource(time.Now().UnixNano()))
 			for yPixel := cpuIndex; yPixel < height; yPixel += numCPU {
 				y := yRatio * (float64(yPixel)/float64(height-1) - 0.5) * -1 // Positive is up
@@ -59,7 +60,7 @@ func Render(scene Scene, camera Camera, image ImageWriter, settings *RenderSetti
 						xRand := (random.Float64() - 0.5) * xStep
 						yRand := (random.Float64() - 0.5) * yStep
 						ray := camera.Cast(random, x+xRand, y+yRand)
-						colors[i] = sampleScene(random, scene, ray, settings.BounceDepth)
+						colors[i] = sampleScene(random, localScene, ray, settings.BounceDepth)
 					}
 					color := averageColors(colors)
 

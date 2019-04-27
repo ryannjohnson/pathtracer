@@ -13,6 +13,21 @@ type tree struct {
 	shapes    []scene.Shape
 }
 
+func (t *tree) clone() *tree {
+	output := &tree{
+		root:      t.root.Clone(),
+		triangles: make([]triangle, len(t.triangles)),
+		shapes:    make([]scene.Shape, len(t.shapes)),
+	}
+	for i := range t.triangles {
+		output.triangles[i] = t.triangles[i]
+	}
+	for i := range t.shapes {
+		output.shapes[i] = t.shapes[i]
+	}
+	return output
+}
+
 func (t *tree) intersect(ray pathtracer.Ray) (hit pathtracer.Hit, hitMaterial material, ok bool) {
 	var closestTriangleIndex int
 	hit, closestTriangleIndex, ok = scene.IntersectTreeNode(t.shapes, t.root, ray)

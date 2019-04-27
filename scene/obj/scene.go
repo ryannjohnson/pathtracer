@@ -26,14 +26,17 @@ func NewScene(objReader, mtlReader io.Reader) (*Scene, error) {
 
 	treeRoot := newTree(triangles)
 
-	return &Scene{decoder, treeRoot}, nil
+	return &Scene{treeRoot}, nil
 }
 
 // Scene contains obj geometry and materials loaded from the g3n game
 // engine library.
 type Scene struct {
-	decoder *obj.Decoder
-	tree    *tree
+	tree *tree
+}
+
+func (s *Scene) Clone() pathtracer.Scene {
+	return &Scene{s.tree.clone()}
 }
 
 // Intersect finds the first geometry a ray passes through in the scene

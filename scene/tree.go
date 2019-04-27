@@ -19,6 +19,23 @@ type TreeNode struct {
 	right        *TreeNode
 }
 
+func (t *TreeNode) Clone() *TreeNode {
+	output := &TreeNode{
+		box:          t.box,
+		shapeIndexes: make([]int, len(t.shapeIndexes)),
+	}
+	for i, shapeIndex := range t.shapeIndexes {
+		output.shapeIndexes[i] = shapeIndex
+	}
+	if t.left != nil {
+		output.left = t.left.Clone()
+	}
+	if t.right != nil {
+		output.right = t.right.Clone()
+	}
+	return output
+}
+
 func BuildTreeNode(shapes []Shape, possibleShapeIndexes []int, box Box) *TreeNode {
 	shapeIndexes := make([]int, 0)
 	for _, shapeIndex := range possibleShapeIndexes {
@@ -72,11 +89,12 @@ func BuildTreeNode(shapes []Shape, possibleShapeIndexes []int, box Box) *TreeNod
 	nodeB := BuildTreeNode(shapes, shapeIndexes, boxB)
 
 	if nodeA != nil && nodeB != nil {
-		return &TreeNode{
+		node := &TreeNode{
 			box:   box,
 			left:  nodeA,
 			right: nodeB,
 		}
+		return node
 	}
 
 	if nodeA != nil {
