@@ -109,7 +109,7 @@ func BuildTreeNode(shapes []TreeShape, possibleShapeIndexes []int, box Box) *Tre
 		}
 	}
 	maxBoxLength := box.Max().Subtract(box.Min()).Length() * 4
-	if maxBoxLength < minShapeLength {
+	if maxBoxLength < minShapeLength || minShapeLength < pathtracer.EPS {
 		// Boxes are smaller than shapes at this point. Subdivision
 		// has diminished its returns by now.
 		node := &TreeNode{
