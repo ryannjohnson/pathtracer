@@ -7,9 +7,9 @@ import (
 )
 
 type Shape interface {
+	BoundingBox() Box
 	Intersect(ray pathtracer.Ray) (distanceAlongRayFromOrigin float64, intersectionPoint, triangleNormal pathtracer.Vector, ok bool)
 	IntersectsBox(box Box) bool
-	Length() float64
 }
 
 type TreeNode struct {
@@ -66,13 +66,13 @@ func BuildTreeNode(shapes []Shape, possibleShapeIndexes []int, box Box) *TreeNod
 	for _, shapeIndex := range shapeIndexes {
 		shape := shapes[shapeIndex]
 
-		shapeLength := shape.Length()
+		shapeBox := shape.BoundingBox()
+		shapeLength := shapeBox.Max().Subtract(shapeBox.Min()).Length()
 		if minShapeLength > shapeLength {
 			minShapeLength = shapeLength
 		}
 	}
-
-	maxBoxLength := boxLongestEdge(box)
+	maxBoxLength := box.Max().Subtract(box.Min()).Length() * 4
 	if maxBoxLength < minShapeLength {
 		// Boxes are smaller than shapes at this point. Subdivision
 		// has diminished its returns by now.
@@ -193,11 +193,6 @@ func IntersectTreeNode(shapes []Shape, tn *TreeNode, ray pathtracer.Ray) (hit pa
 		Normal:   closestNormal,
 	}
 	return
-}
-
-func boxLongestEdge(box Box) float64 {
-	d := box.Max().Subtract(box.Min())
-	return math.Max(math.Max(d.X, d.Y), d.Z)
 }
 
 func splitBoxByLongestAxis(box Box) (Box, Box) {

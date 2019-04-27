@@ -33,11 +33,19 @@ func (t triangle) IntersectsBox(box scene.Box) bool {
 	return box.IntersectsTriangle(t)
 }
 
-func (t triangle) Length() float64 {
-	v0v1 := t.Vertex0().Subtract(t.Vertex1()).Length()
-	v1v2 := t.Vertex1().Subtract(t.Vertex2()).Length()
-	v2v0 := t.Vertex2().Subtract(t.Vertex0()).Length()
-	return math.Max(math.Max(v0v1, v1v2), v2v0)
+func (t triangle) BoundingBox() scene.Box {
+	min := pathtracer.NewVector(math.MaxFloat64, math.MaxFloat64, math.MaxFloat64)
+	max := pathtracer.NewVector(math.MaxFloat64*-1, math.MaxFloat64*-1, math.MaxFloat64*-1)
+	for _, vertex := range t.vertexes {
+		min.X = math.Min(min.X, vertex.X)
+		min.Y = math.Min(min.Y, vertex.Y)
+		min.Z = math.Min(min.Z, vertex.Z)
+		max.X = math.Max(max.X, vertex.X)
+		max.Y = math.Max(max.Y, vertex.Y)
+		max.Z = math.Max(max.Z, vertex.Z)
+	}
+	box := scene.NewBox(min, max)
+	return box
 }
 
 func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(triangle)) {
