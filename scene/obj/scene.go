@@ -14,7 +14,7 @@ import (
 type Scene struct {
 	tree      *scene.TreeNode
 	triangles []objTriangle
-	shapes    []scene.Shape
+	shapes    []scene.TreeShape
 }
 
 // NewScene loads from .obj and .mtl files to produce a scene.
@@ -49,7 +49,7 @@ func NewScene(objReader, mtlReader io.Reader) (*Scene, error) {
 	rootBox := scene.NewBox(boxMin, boxMax)
 
 	triangleIndexes := make([]int, len(triangles))
-	shapes := make([]scene.Shape, len(triangles))
+	shapes := make([]scene.TreeShape, len(triangles))
 	for i := range triangles {
 		triangleIndexes[i] = i
 		shapes[i] = triangles[i]
@@ -66,7 +66,7 @@ func (s *Scene) Clone() pathtracer.Scene {
 	output := &Scene{
 		tree:      s.tree.Clone(),
 		triangles: make([]objTriangle, len(s.triangles)),
-		shapes:    make([]scene.Shape, len(s.shapes)),
+		shapes:    make([]scene.TreeShape, len(s.shapes)),
 	}
 	for i := range s.triangles {
 		output.triangles[i] = s.triangles[i]
