@@ -6,20 +6,20 @@ import (
 	"github.com/g3n/engine/loader/obj"
 	"github.com/g3n/engine/math32"
 	"github.com/ryannjohnson/pathtracer"
-	pathtracerMaterial "github.com/ryannjohnson/pathtracer/material"
+	"github.com/ryannjohnson/pathtracer/material"
 )
 
-type material struct {
+type objMaterial struct {
 	source *obj.Material
 }
 
-func (m material) Sample(random *rand.Rand, hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
+func (m objMaterial) Sample(random *rand.Rand, hit pathtracer.Hit, nextSample pathtracer.Sampler) pathtracer.Color {
 	color := pathtracer.NewColor(0, 0, 0)
 
 	if m.source.Diffuse.R >= pathtracer.EPS || m.source.Diffuse.G >= pathtracer.EPS || m.source.Diffuse.B >= pathtracer.EPS {
 		ray := pathtracer.Ray{
 			Origin:    hit.Position,
-			Direction: pathtracerMaterial.DiffuseBounce(random, hit.Normal),
+			Direction: material.DiffuseBounce(random, hit.Normal),
 		}
 
 		colorFromScene := nextSample(ray)
@@ -31,7 +31,7 @@ func (m material) Sample(random *rand.Rand, hit pathtracer.Hit, nextSample patht
 		// TODO: Account for specular glossiness.
 		ray := pathtracer.Ray{
 			Origin:    hit.Position,
-			Direction: pathtracerMaterial.SpecularBounce(hit.Normal, hit.From.Direction),
+			Direction: material.SpecularBounce(hit.Normal, hit.From.Direction),
 		}
 
 		colorFromScene := nextSample(ray)

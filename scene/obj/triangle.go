@@ -17,7 +17,7 @@ type objTriangle struct {
 	vertexes [3]pathtracer.Vector
 	uvs      [3]objUVCoordinate
 	normals  [3]pathtracer.Vector
-	material material
+	material objMaterial
 	smooth   bool
 }
 
@@ -107,7 +107,7 @@ func readTriangles(decoder *obj.Decoder, face obj.Face, callback func(objTriangl
 			vertexes: vertexes,
 			normals:  normals,
 			uvs:      uvs,
-			material: material{source: decoder.Materials[face.Material]},
+			material: objMaterial{source: decoder.Materials[face.Material]},
 			smooth:   face.Smooth,
 		}
 
