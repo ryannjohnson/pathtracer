@@ -60,23 +60,6 @@ func NewScene(objReader, mtlReader io.Reader) (*Scene, error) {
 	return &Scene{rootNode, triangles, shapes}, nil
 }
 
-// Clone creates a full-data copy of the scene's contents. Useful for
-// multiprocessing, each process with its own copy of the scene.
-func (s *Scene) Clone() pathtracer.Scene {
-	output := &Scene{
-		tree:      s.tree.Clone(),
-		triangles: make([]objTriangle, len(s.triangles)),
-		shapes:    make([]scene.TreeShape, len(s.shapes)),
-	}
-	for i := range s.triangles {
-		output.triangles[i] = s.triangles[i]
-	}
-	for i := range s.shapes {
-		output.shapes[i] = s.shapes[i]
-	}
-	return output
-}
-
 // Intersect finds the first geometry a ray passes through in the scene
 // and returns details about the intersection and its material.
 func (s *Scene) Intersect(ray pathtracer.Ray) (hit pathtracer.Hit, hitMaterial pathtracer.Material, ok bool) {
