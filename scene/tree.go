@@ -101,8 +101,18 @@ func BuildTreeNode(shapes []TreeShape, possibleShapeIndexes []int, box Box) *Tre
 
 	boxA, boxB := splitBoxByLongestAxis(box)
 
-	nodeA := BuildTreeNode(shapes, shapeIndexes, boxA)
-	nodeB := BuildTreeNode(shapes, shapeIndexes, boxB)
+	var nodeA *TreeNode
+	var nodeB *TreeNode
+
+	nodeChan := make(chan *TreeNode)
+	go func() {
+		nodeChan <- BuildTreeNode(shapes, shapeIndexes, boxA)
+	}()
+	go func() {
+		nodeChan <- BuildTreeNode(shapes, shapeIndexes, boxB)
+	}()
+	nodeA = <-nodeChan
+	nodeB = <-nodeChan
 
 	if nodeA != nil && nodeB != nil {
 		node := &TreeNode{
