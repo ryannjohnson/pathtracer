@@ -39,26 +39,6 @@ type TreeNode struct {
 	right        *TreeNode
 }
 
-// Clone deep-copies the TreeNode and all its children. Useful for
-// multiprocessing and allowing each process to have its own copy of the
-// scene.
-func (t *TreeNode) Clone() *TreeNode {
-	output := &TreeNode{
-		box:          t.box,
-		shapeIndexes: make([]int, len(t.shapeIndexes)),
-	}
-	for i, shapeIndex := range t.shapeIndexes {
-		output.shapeIndexes[i] = shapeIndex
-	}
-	if t.left != nil {
-		output.left = t.left.Clone()
-	}
-	if t.right != nil {
-		output.right = t.right.Clone()
-	}
-	return output
-}
-
 // BuildTreeNode constructs a tree of TreeNodes that can be queried for
 // shape indexes.
 //
