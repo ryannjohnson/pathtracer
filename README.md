@@ -2,4 +2,14 @@
 
 A pathtracer is a brute force system that reproduces how light behaves in the physical world, rendering the results to a 2D image.
 
-Still a lot to implement. Will update with usage and license when ready.
+![example1](./example1.png)
+
+## Installation
+
+This library depends on [github.com/g3n/engine](https://github.com/g3n/engine). Follow its installation instructions before installing this package.
+
+```bash
+$ go get github.com/ryannjohnson/pathtracer
+```
+
+For usage, see the [examples directory](./examples/).
